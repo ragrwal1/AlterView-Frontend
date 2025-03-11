@@ -1,66 +1,113 @@
 "use client";
 
-import { Inter } from "next/font/google";
+import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-
-const inter = Inter({ subsets: ["latin"] });
+import { ArrowLeft } from "lucide-react";
+import FloatingIcons from "@/components/app/FloatingIcons";
+import { AppleInput } from "@/components/app/AppleInput";
 
 export default function StudentLogin() {
   const [studentId, setStudentId] = useState("");
+  const [error, setError] = useState("");
+  const [loaded, setLoaded] = useState(false);
   const router = useRouter();
+
+  // Animation on page load
+  useEffect(() => {
+    setLoaded(true);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (studentId.trim()) {
-      router.push(`/students/${studentId}`);
+    
+    // Basic validation
+    if (!studentId.trim()) {
+      setError("Please enter your student ID");
+      return;
     }
+    
+    // Here you would typically validate the student ID against your backend
+    // For now, we'll just navigate to the student dashboard
+    router.push(`/students/${studentId}`);
   };
 
   return (
-    <main
-      className={`flex min-h-screen flex-col items-center justify-between p-12 ${inter.className}`}
-    >
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold">Student Login</h1>
-          <p className="text-slate-600 mt-2">
-            Enter your student ID to access your assessments
+    <div className="relative flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] px-4 overflow-hidden">
+      {/* Background animation */}
+      <FloatingIcons />
+      
+      {/* Card container */}
+      <div 
+        className={`w-full max-w-md relative z-10 transition-all duration-700 ease-out ${
+          loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        }`}
+      >
+        {/* Top logo section */}
+        <div className="flex justify-center mb-6">
+          <div className="relative h-16 w-16 animate-float">
+            <Image
+              src="/alterview-logo.svg"
+              alt="AlterView Logo"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
+        </div>
+        
+        {/* Heading - larger and more prominent */}
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-semibold text-gray-900 mb-4 animate-fadeIn">Welcome to AlterView</h1>
+          <p className="text-gray-500 text-lg animate-fadeIn" style={{ animationDelay: '100ms' }}>
+            Sign in with your student ID
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="studentId">
-              Student ID
-            </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="studentId"
-              type="text"
-              placeholder="Enter your student ID"
+        {/* Login Form - clean white card with subtle shadow - made taller */}
+        <div className="bg-white/90 backdrop-blur-md rounded-2xl px-8 pt-10 pb-10 mb-6 shadow-apple animate-scaleIn">
+          <form onSubmit={handleSubmit}>
+            <AppleInput
+              label="Student ID"
+              variant="default"
+              inputSize="lg"
               value={studentId}
-              onChange={(e) => setStudentId(e.target.value)}
-              required
+              onChange={(e) => {
+                setStudentId(e.target.value);
+                if (error) setError("");
+              }}
+              error={error}
+              showFocusEffect={true}
+              className="text-gray-800 text-lg"
             />
-          </div>
-          <div className="flex items-center justify-between">
-            <button
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              type="submit"
-            >
-              Login
-            </button>
-            <Link
-              href="/"
-              className="inline-block align-baseline font-bold text-sm text-blue-600 hover:text-blue-800"
-            >
-              Back to Home
-            </Link>
-          </div>
-        </form>
+            
+            <div className="flex justify-center mt-10">
+              <button
+                className={`w-full py-3.5 rounded-xl text-white font-medium text-lg transition-all duration-300 button-shine
+                ${studentId.trim() 
+                  ? 'bg-alterview-gradient hover:shadow-md' 
+                  : 'bg-gray-300 cursor-not-allowed'}`}
+                type="submit"
+                disabled={!studentId.trim()}
+              >
+                Sign In
+              </button>
+            </div>
+          </form>
+        </div>
+        
+        {/* Back link */}
+        <div className="text-center animate-fadeIn" style={{ animationDelay: '200ms' }}>
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center text-alterview-indigo hover:text-alterview-violet transition-colors apple-hover"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            <span>Back to home</span>
+          </Link>
+        </div>
       </div>
-    </main>
+    </div>
   );
 } 
