@@ -34,6 +34,8 @@ git add .
 # Commit with the random message
 git commit -m "$COMMIT_MESSAGE"
 
+git push
+
 # Display the commit message that was used
 echo "Committed with message: $COMMIT_MESSAGE"
 
