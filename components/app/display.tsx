@@ -1,67 +1,58 @@
-import { shows } from "@/data/shows";
-import { Message, MessageTypeEnum } from "@/lib/types/conversation.type";
+import { Message, MessageTypeEnum, TranscriptMessageTypeEnum, TranscriptMessage } from "@/lib/types/conversation.type";
 import { vapi } from "@/lib/vapi.sdk";
-import React, { useEffect } from "react";
-import { ShowsComponent } from "./shows";
-import { Ticket } from "./ticket";
+import React, { useEffect, useRef, useState } from "react";
 
 function Display() {
-  const [showList, setShowList] = React.useState<Array<(typeof shows)[number]>>(
-    []
-  );
+  // Store the complete transcript as a single string
+  const [fullTranscript, setFullTranscript] = useState<string>("");
+  const [activePartial, setActivePartial] = useState<string>("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const [status, setStatus] = React.useState<"show" | "confirm" | "ticket">(
-    "show"
-  );
-
-  const [selectedShow, setSelectedShow] = React.useState<
-    (typeof shows)[number] | null
-  >(null);
-
-  const [confirmDetails, setConfirmDetails] = React.useState<{}>();
+  // Auto-scroll to bottom when transcript changes
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [fullTranscript, activePartial]);
 
   useEffect(() => {
     const onMessageUpdate = (message: Message) => {
-      if (
-        message.type === MessageTypeEnum.FUNCTION_CALL &&
-        message.functionCall.name === "suggestShows"
-      ) {
-        setStatus("show");
-        vapi.send({
-          type: MessageTypeEnum.ADD_MESSAGE,
-          message: {
-            role: "system",
-            content: `Here is the list of suggested shows: ${JSON.stringify(
-              shows.map((show) => show.title)
-            )}`,
-          },
-        });
-        setShowList(shows);
-      } else if (
-        message.type === MessageTypeEnum.FUNCTION_CALL &&
-        (message.functionCall.name === "confirmDetails" ||
-          message.functionCall.name === "bookTickets")
-      ) {
-        const params = message.functionCall.parameters;
-
-        setConfirmDetails(params);
-        console.log("parameters", params);
-
-        const result = shows.find(
-          (show) => show.title.toLowerCase() == params.show.toLowerCase()
-        );
-        setSelectedShow(result ?? shows[0]);
-
-        setStatus(
-          message.functionCall.name === "confirmDetails" ? "confirm" : "ticket"
-        );
+      // Only process transcript messages
+      if (message.type === MessageTypeEnum.TRANSCRIPT && 'transcript' in message) {
+        const text = message.transcript.trim();
+        
+        // Skip JSON and system messages
+        if (text.startsWith('{') || text.includes('"type":') || text.includes('"status":')) {
+          return;
+        }
+        
+        // Handle partial transcripts (typing effect)
+        if (message.transcriptType === TranscriptMessageTypeEnum.PARTIAL) {
+          setActivePartial(text);
+        } 
+        // Handle final transcripts (add to full transcript)
+        else if (message.transcriptType === TranscriptMessageTypeEnum.FINAL) {
+          setFullTranscript(prev => {
+            // If this is the first message, just return it
+            if (!prev) return text;
+            
+            // Add proper spacing based on punctuation
+            if (prev.endsWith(",") || prev.endsWith("-") || prev.endsWith(":") || prev.endsWith(";")) {
+              return `${prev} ${text}`;
+            } else if (prev.endsWith(".") || prev.endsWith("?") || prev.endsWith("!")) {
+              return `${prev} ${text}`;
+            } else {
+              return `${prev} ${text}`;
+            }
+          });
+          setActivePartial("");
+        }
       }
     };
 
     const reset = () => {
-      setStatus("show");
-      setShowList([]);
-      setSelectedShow(null);
+      setFullTranscript("");
+      setActivePartial("");
     };
 
     vapi.on("message", onMessageUpdate);
@@ -73,18 +64,28 @@ function Display() {
   }, []);
 
   return (
-    <>
-      {showList.length > 0 && status == "show" ? (
-        <ShowsComponent showList={showList} />
-      ) : null}
-      {status !== "show" ? (
-        <Ticket
-          type={status}
-          show={selectedShow ?? shows[0]}
-          params={confirmDetails}
-        />
-      ) : null}
-    </>
+    <div className="flex flex-col h-[70vh] relative bg-[#f5f5f7]">
+      {/* Main content container */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6">
+        <div className="w-full max-w-3xl">
+          {/* Display the full transcript */}
+          <div className="mb-4">
+            <h1 className="text-[#1d1d1f] text-4xl font-bold leading-tight tracking-tight mb-6">
+              {fullTranscript}
+              {/* Show the active partial with a blinking cursor effect */}
+              {activePartial && (
+                <span className="text-[#1d1d1f] opacity-80"> {activePartial}</span>
+              )}
+              {/* Blinking cursor */}
+              <span className="inline-block w-2 h-8 bg-[#1d1d1f] ml-1 animate-blink"></span>
+            </h1>
+          </div>
+          
+          {/* Invisible element to scroll to */}
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
+    </div>
   );
 }
 

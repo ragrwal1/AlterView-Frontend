@@ -1,6 +1,8 @@
 "use client";
 
 import { assistant } from "@/assistants/assistant";
+import { createCustomAssistant } from "@/assistants/assistant";
+import { fetchAssessmentPromptData } from "@/services/assessmentService";
 
 import {
   Message,
@@ -18,7 +20,7 @@ export enum CALL_STATUS {
   LOADING = "loading",
 }
 
-export function useVapi() {
+export function useVapi(assessmentId?: string) {
   const [isSpeechActive, setIsSpeechActive] = useState(false);
   const [callStatus, setCallStatus] = useState<CALL_STATUS>(
     CALL_STATUS.INACTIVE
@@ -92,11 +94,25 @@ export function useVapi() {
 
   const start = async () => {
     setCallStatus(CALL_STATUS.LOADING);
-    const response = vapi.start(assistant);
-
-    response.then((res) => {
-      console.log("call", res);
-    });
+    
+    try {
+      let assistantConfig = assistant;
+      
+      // If assessmentId is provided, fetch custom prompt data
+      if (assessmentId) {
+        console.log(`Fetching prompt data for assessment: ${assessmentId}`);
+        const promptData = await fetchAssessmentPromptData(assessmentId);
+        assistantConfig = createCustomAssistant(promptData);
+      }
+      
+      const response = vapi.start(assistantConfig);
+      response.then((res) => {
+        console.log("call", res);
+      });
+    } catch (error) {
+      console.error("Error starting call:", error);
+      setCallStatus(CALL_STATUS.INACTIVE);
+    }
   };
 
   const stop = () => {

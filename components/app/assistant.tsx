@@ -4,8 +4,12 @@ import { useVapi } from "../../hooks/useVapi";
 import { AssistantButton } from "./assistantButton";
 import { Display } from "./display";
 
-function Assistant() {
-  const { toggleCall, callStatus, audioLevel } = useVapi();
+interface AssistantProps {
+  assessmentId: string;
+}
+
+function Assistant({ assessmentId }: AssistantProps) {
+  const { toggleCall, callStatus, audioLevel } = useVapi(assessmentId);
   return (
     <>
       <div className="chat-history">
