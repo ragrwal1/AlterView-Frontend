@@ -64,22 +64,35 @@ function Display() {
   }, []);
 
   return (
-    <div className="flex flex-col h-[70vh] relative bg-[#f5f5f7]">
+    <div className="flex flex-col h-[70vh] relative bg-gradient-to-b from-white to-gray-50 shadow-soft rounded-2xl overflow-hidden border border-gray-100">
+      {/* Header */}
+      <div className="bg-white p-4 border-b border-gray-100 flex items-center space-x-2">
+        <div className="w-3 h-3 rounded-full bg-alterview-indigo animate-pulse"></div>
+        <h2 className="text-lg font-medium text-gray-800">AlterView Assistant</h2>
+      </div>
+      
       {/* Main content container */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6">
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 overflow-y-auto scrollbar-thin">
         <div className="w-full max-w-3xl">
-          {/* Display the full transcript */}
-          <div className="mb-4">
-            <h1 className="text-[#1d1d1f] text-4xl font-bold leading-tight tracking-tight mb-6">
-              {fullTranscript}
-              {/* Show the active partial with a blinking cursor effect */}
-              {activePartial && (
-                <span className="text-[#1d1d1f] opacity-80"> {activePartial}</span>
-              )}
-              {/* Blinking cursor */}
-              <span className="inline-block w-2 h-8 bg-[#1d1d1f] ml-1 animate-blink"></span>
-            </h1>
-          </div>
+          {!fullTranscript && !activePartial ? (
+            <div className="text-center text-gray-500 animate-pulse">
+              <p className="text-xl">Waiting for conversation to begin...</p>
+              <p className="mt-2">Click the microphone button below to start</p>
+            </div>
+          ) : (
+            /* Display the full transcript */
+            <div className="mb-4 animate-fadeIn">
+              <p className="text-gray-800 text-xl leading-relaxed tracking-wide">
+                {fullTranscript}
+                {/* Show the active partial with a blinking cursor effect */}
+                {activePartial && (
+                  <span className="text-gray-600"> {activePartial}</span>
+                )}
+                {/* Blinking cursor */}
+                <span className="inline-block w-1.5 h-5 bg-alterview-indigo ml-1 animate-pulse"></span>
+              </p>
+            </div>
+          )}
           
           {/* Invisible element to scroll to */}
           <div ref={messagesEndRef} />
