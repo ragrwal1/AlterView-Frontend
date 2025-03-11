@@ -83,7 +83,5 @@ Remember, your role is strictly diagnostic and educational. Maintain a supportiv
   },
   firstMessage:
     "Hello! I'm your AlterView interviewer for today's assessment on Computer Networking concepts. I'm here to have a conversation with you about networking principles, protocols, architectures, and security to understand your knowledge depth and help identify areas where you excel and where you might benefit from additional focus.",
-  serverUrl: process.env.NEXT_PUBLIC_SERVER_URL
-    ? process.env.NEXT_PUBLIC_SERVER_URL
-    : "https://08ae-202-43-120-244.ngrok-free.app/api/webhook"
+  serverUrl: "https://08ae-202-43-120-244.ngrok-free.app/api/webhook"
 };
