@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"] });
 // Mock data for assessments
 const mockAssessments = [
   { id: "1", title: "English Literature Interview" },
-  { id: "assessment2", title: "Mathematics Assessment" },
+  { id: "1", title: "Mathematics Assessment" },
   { id: "assessment3", title: "Science Evaluation" },
 ];
 
