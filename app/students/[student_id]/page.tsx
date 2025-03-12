@@ -7,12 +7,16 @@ const inter = Inter({ subsets: ["latin"] });
 
 // Mock data for assessments
 const mockAssessments = [
-  { id: "1", title: "English Literature Interview" },
+  { id: "1", title: "Data Structures and Algorithms (CSE 310)" },
   { id: "1", title: "Mathematics Assessment" },
   { id: "assessment3", title: "Science Evaluation" },
 ];
 
-export default function StudentDashboard({ params }: { params: { student_id: string } }) {
+export default function StudentDashboard({
+  params,
+}: {
+  params: { student_id: string };
+}) {
   return (
     <main
       className={`flex min-h-screen flex-col items-center p-12 ${inter.className}`}
@@ -21,9 +25,7 @@ export default function StudentDashboard({ params }: { params: { student_id: str
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold">Student Dashboard</h1>
-            <p className="text-slate-600">
-              Student ID: {params.student_id}
-            </p>
+            <p className="text-slate-600">Student ID: {params.student_id}</p>
           </div>
           <Link
             href="/"
@@ -35,11 +37,11 @@ export default function StudentDashboard({ params }: { params: { student_id: str
 
         <div className="bg-white shadow-md rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">Your Assessments</h2>
-          
+
           {mockAssessments.length > 0 ? (
             <div className="space-y-4">
               {mockAssessments.map((assessment) => (
-                <div 
+                <div
                   key={assessment.id}
                   className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
                 >
@@ -56,10 +58,12 @@ export default function StudentDashboard({ params }: { params: { student_id: str
               ))}
             </div>
           ) : (
-            <p className="text-gray-500">No assessments available at this time.</p>
+            <p className="text-gray-500">
+              No assessments available at this time.
+            </p>
           )}
         </div>
       </div>
     </main>
   );
-} 
+}

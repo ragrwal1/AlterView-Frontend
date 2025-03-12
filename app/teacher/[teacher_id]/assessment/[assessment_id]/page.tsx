@@ -2,6 +2,11 @@
 
 import { Inter } from "next/font/google";
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import {
+  fetchAssessmentMindMap,
+  updateAssessmentMindMap,
+} from "@/services/assessmentService";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -14,7 +19,11 @@ const mockStudents = [
   { id: "student5", name: "Jordan Lee", status: "Completed", score: 78 },
 ];
 
-export default function AssessmentReview({ params }: { params: { teacher_id: string, assessment_id: string } }) {
+export default function AssessmentReview({
+  params,
+}: {
+  params: { teacher_id: string; assessment_id: string };
+}) {
   return (
     <main
       className={`flex min-h-screen flex-col items-center p-12 ${inter.className}`}
@@ -40,7 +49,9 @@ export default function AssessmentReview({ params }: { params: { teacher_id: str
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-gray-500">Title</p>
-              <p className="font-medium">English Literature Interview</p>
+              <p className="font-medium">
+                Data Structures and Algorithms (CSE 310)
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Created</p>
@@ -53,7 +64,12 @@ export default function AssessmentReview({ params }: { params: { teacher_id: str
             <div>
               <p className="text-sm text-gray-500">Completion Rate</p>
               <p className="font-medium">
-                {Math.round((mockStudents.filter(s => s.status === "Completed").length / mockStudents.length) * 100)}%
+                {Math.round(
+                  (mockStudents.filter((s) => s.status === "Completed").length /
+                    mockStudents.length) *
+                    100
+                )}
+                %
               </p>
             </div>
           </div>
@@ -61,7 +77,7 @@ export default function AssessmentReview({ params }: { params: { teacher_id: str
 
         <div className="bg-white shadow-md rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">Student Results</h2>
-          
+
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white">
               <thead>
@@ -74,17 +90,26 @@ export default function AssessmentReview({ params }: { params: { teacher_id: str
               </thead>
               <tbody className="text-gray-600 text-sm">
                 {mockStudents.map((student) => (
-                  <tr key={student.id} className="border-b border-gray-200 hover:bg-gray-50">
+                  <tr
+                    key={student.id}
+                    className="border-b border-gray-200 hover:bg-gray-50"
+                  >
                     <td className="py-3 px-6 text-left whitespace-nowrap">
                       <div className="font-medium">{student.name}</div>
-                      <div className="text-xs text-gray-500">ID: {student.id}</div>
+                      <div className="text-xs text-gray-500">
+                        ID: {student.id}
+                      </div>
                     </td>
                     <td className="py-3 px-6 text-left">
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        student.status === "Completed" ? "bg-green-100 text-green-800" :
-                        student.status === "In Progress" ? "bg-blue-100 text-blue-800" :
-                        "bg-gray-100 text-gray-800"
-                      }`}>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${
+                          student.status === "Completed"
+                            ? "bg-green-100 text-green-800"
+                            : student.status === "In Progress"
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
                         {student.status}
                       </span>
                     </td>
@@ -108,4 +133,4 @@ export default function AssessmentReview({ params }: { params: { teacher_id: str
       </div>
     </main>
   );
-} 
+}
