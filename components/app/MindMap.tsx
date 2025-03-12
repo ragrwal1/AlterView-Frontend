@@ -76,6 +76,18 @@ const MindMap: React.FC<MindMapProps> = ({ data, className = '' }) => {
       5: '#007AFF'  // Dark Blue
     };
 
+    // Ensure data has the expected structure before proceeding
+    if (!data.topic) {
+      // Render a message that data is missing or invalid
+      svg.append('text')
+        .attr('x', width / 2)
+        .attr('y', height / 2)
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#666')
+        .text('Mind map data is missing or invalid');
+      return;
+    }
+
     // Create the root node manually to ensure we have a valid node
     const rootNode: TreeNode = {
       x: 0,
@@ -112,8 +124,8 @@ const MindMap: React.FC<MindMapProps> = ({ data, className = '' }) => {
       });
     }
 
-    // Create the tree structure
-    rootNode.children = data.topic && data.topic.subtopics 
+    // Create the tree structure with null check
+    rootNode.children = data.topic.subtopics 
       ? createChildren(rootNode, data.topic.subtopics, 1)
       : [];
 
@@ -154,8 +166,44 @@ const MindMap: React.FC<MindMapProps> = ({ data, className = '' }) => {
     // Start positioning from the root
     positionNodes(rootNode, height / 2, 100);
 
-    // Get all nodes for rendering
+    // Helper function to get all nodes (including all descendants)
+    function getAllNodes(root: TreeNode): TreeNode[] {
+      if (!root) {
+        console.warn('getAllNodes called with undefined root');
+        return [];
+      }
+    
+      const nodes: TreeNode[] = [root];
+      
+      function collectNodes(node: TreeNode) {
+        if (!node) return;
+        
+        if (node.children && node.children.length > 0) {
+          node.children.forEach(child => {
+            if (child) {
+              nodes.push(child);
+              collectNodes(child);
+            }
+          });
+        }
+      }
+      
+      collectNodes(root);
+      return nodes;
+    }
+
+    // Get all nodes for rendering - with error handling
     const allNodes = getAllNodes(rootNode);
+    if (allNodes.length === 0) {
+      console.error('No nodes available for rendering');
+      svg.append('text')
+        .attr('x', width / 2)
+        .attr('y', height / 2)
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#666')
+        .text('No mind map data available');
+      return;
+    }
 
     // Create links
     const links: Link[] = [];
@@ -477,29 +525,39 @@ const MindMap: React.FC<MindMapProps> = ({ data, className = '' }) => {
     // Popup functionality
     let currentPopupNode = null;
 
-    function showPopup(d, event) {
-      // Set popup content
-      document.getElementById('popup-title').textContent = d.data.name;
-      document.getElementById('popup-description').textContent = d.data.description;
-
-      // Check if there's a response
+    function showPopup(d: TreeNode, event: MouseEvent) {
+      const popupTitle = document.getElementById('popup-title');
+      const popupDescription = document.getElementById('popup-description');
       const responseSection = document.getElementById('popup-response-section');
-      if (d.data.studentResponse) {
-        document.getElementById('popup-response').textContent = d.data.studentResponse;
+      const popupResponse = document.getElementById('popup-response');
+      const popupLevelText = document.getElementById('popup-level-text');
+      const dotsContainer = document.getElementById('popup-dots');
+      
+      if (!popupTitle || !popupDescription || !responseSection || 
+          !popupResponse || !popupLevelText || !dotsContainer) {
+        console.error('Popup DOM elements not found');
+        return;
+      }
+      
+      // Set popup content
+      popupTitle.textContent = d.data?.name || 'Unnamed Topic';
+      popupDescription.textContent = d.data?.description || 'No description available';
+      
+      // Check if there's a response
+      if (d.data?.studentResponse) {
+        popupResponse.textContent = d.data.studentResponse;
         responseSection.style.display = 'block';
       } else {
         responseSection.style.display = 'none';
       }
-
+      
       // Set understanding level
-      const understandingLevel = d.data.understandingLevel || 0;
-      document.getElementById('popup-level-text').textContent =
-        `Understanding: ${understandingLevel}/5`;
-
+      const understandingLevel = d.data?.understandingLevel || 0;
+      popupLevelText.textContent = `Understanding: ${understandingLevel}/5`;
+      
       // Create dots for understanding level
-      const dotsContainer = document.getElementById('popup-dots');
       dotsContainer.innerHTML = '';
-
+      
       for (let i = 0; i < 5; i++) {
         const dot = document.createElement('div');
         dot.className = 'popup-dot';
@@ -512,18 +570,32 @@ const MindMap: React.FC<MindMapProps> = ({ data, className = '' }) => {
         `;
         dotsContainer.appendChild(dot);
       }
-
+      
       // Show popup and overlay
-      popup.style.display = 'block';
-      popupOverlay.style.display = 'block';
-
+      const popup = document.getElementById('popup');
+      const popupOverlay = document.getElementById('popup-overlay');
+      
+      if (popup && popupOverlay) {
+        popup.style.display = 'block';
+        popupOverlay.style.display = 'block';
+      }
+      
       // Store current node
       currentPopupNode = d;
     }
 
     function closePopup() {
-      popup.style.display = 'none';
-      popupOverlay.style.display = 'none';
+      const popup = document.getElementById('popup');
+      const popupOverlay = document.getElementById('popup-overlay');
+      
+      if (popup) {
+        popup.style.display = 'none';
+      }
+      
+      if (popupOverlay) {
+        popupOverlay.style.display = 'none';
+      }
+      
       currentPopupNode = null;
     }
 
@@ -547,23 +619,6 @@ const MindMap: React.FC<MindMapProps> = ({ data, className = '' }) => {
       popup,
       popupOverlay
     };
-
-    // Helper function to get all nodes (including all descendants)
-    function getAllNodes(root) {
-      const nodes = [root];
-
-      function collectNodes(node) {
-        if (node.children && node.children.length > 0) {
-          node.children.forEach(child => {
-            nodes.push(child);
-            collectNodes(child);
-          });
-        }
-      }
-
-      collectNodes(root);
-      return nodes;
-    }
 
     // Handle window resize
     const handleResize = () => {
@@ -633,12 +688,16 @@ const MindMap: React.FC<MindMapProps> = ({ data, className = '' }) => {
 };
 
 // Improved text wrapping function for better containment
-function wrapTextToFit(text, maxWidth, fontSize) {
+function wrapTextToFit(text: string, maxWidth: number, fontSize: number): string[] {
+  // Handle edge cases
+  if (!text) return [];
+  if (maxWidth <= 0 || fontSize <= 0) return [text];
+  
   // Approximate character width based on font size
   const charWidth = fontSize * 0.6;
   const maxCharsPerLine = Math.floor(maxWidth / charWidth);
   const words = text.split(/\s+/);
-  const lines = [];
+  const lines: string[] = [];
   let currentLine = "";
   
   // Handle long words that need breaking
