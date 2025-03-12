@@ -10,11 +10,13 @@ interface AssistantProps {
 
 function Assistant({ assessmentId }: AssistantProps) {
   const { toggleCall, callStatus, audioLevel } = useVapi(assessmentId);
+
   return (
     <>
       <div className="chat-history">
         <Display />
       </div>
+
       <div className="user-input">
         <AssistantButton
           audioLevel={audioLevel}
