@@ -51,7 +51,7 @@ export default function AssessmentPage({ params }: { params: { student_id: strin
     }
 
     fetchAssessment();
-  }, [params.assessment_id, params.student_id]);
+  }, [params.assessment_id]);
 
   return (
     <main

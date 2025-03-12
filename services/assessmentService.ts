@@ -1,4 +1,5 @@
 import { assistant as defaultAssistant } from "@/assistants/assistant";
+import { getMindmap } from "./supabaseService";
 
 export interface AssistmentPromptData {
   systemPrompt: string;
@@ -55,9 +56,20 @@ export async function fetchAssessmentPromptData(
       };
     }
 
-    // Map the API response to the expected format
+    // Get the mindmap from Supabase
+    let mindmapString = "";
+    try {
+      const mindmap = await getMindmap(parseInt(assessmentId));
+      if (mindmap) {
+        mindmapString = `\n\nMindmap: ${JSON.stringify(mindmap)}`;
+      }
+    } catch (error) {
+      console.error("Error fetching mindmap:", error);
+    }
+
+    // Map the API response to the expected format and append mindmap to system prompt
     return {
-      systemPrompt: assessment.system_prompt,
+      systemPrompt: assessment.system_prompt + mindmapString,
       firstMessage: assessment.first_question,
     };
   } catch (error) {

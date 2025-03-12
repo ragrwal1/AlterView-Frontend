@@ -188,3 +188,18 @@ export async function getPrompts(id: number) {
     .single();
 }
 
+//getMindmap string from Assessment Table using id, return mindmap string
+export async function getMindmap(id: number) {
+  const { data, error } = await supabase
+    .from('Assessment')
+    .select('mindmap_template')
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    console.error('Error fetching mindmap:', error);
+    return null;
+  }
+  
+  return data?.mindmap_template;
+}
