@@ -35,6 +35,7 @@ function Assistant({ assessmentId }: AssistantProps) {
             type="range"
             min="10"
             max="100"
+            step="5"
             value={speed}
             onChange={handleSpeedChange}
             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
