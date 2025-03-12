@@ -1,20 +1,104 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
 
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [visibleSections, setVisibleSections] = useState<{[key: string]: boolean}>({
+    hero: false,
+    features: false,
+    cta: false
+  });
+  
+  // Form state
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    institution: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formSuccess, setFormSuccess] = useState(false);
+  
+  const featuresRef = useRef<HTMLElement>(null);
+  const ctaRef = useRef<HTMLElement>(null);
+
+  // Check if element is in viewport - adjusted for quicker triggering
+  const isInViewport = useCallback((element: HTMLElement) => {
+    const rect = element.getBoundingClientRect();
+    return (
+      rect.top <= (window.innerHeight * 0.85) &&
+      rect.bottom >= 0
+    );
+  }, []);
+
+  // Handle scroll events to check which sections are visible
+  const handleScroll = useCallback(() => {
+    if (featuresRef.current) {
+      setVisibleSections(prev => ({
+        ...prev,
+        features: isInViewport(featuresRef.current!)
+      }));
+    }
+    
+    if (ctaRef.current) {
+      setVisibleSections(prev => ({
+        ...prev,
+        cta: isInViewport(ctaRef.current!)
+      }));
+    }
+  }, [isInViewport]);
+
+  // Handle form input changes - immediate feedback
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle form submission - faster processing
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    // Faster simulation of API call
+    setTimeout(() => {
+      console.log('Form submitted:', formData);
+      setIsSubmitting(false);
+      setFormSuccess(true);
+      setFormData({ name: '', email: '', institution: '' });
+      
+      // Shorter reset time for success message
+      setTimeout(() => {
+        setFormSuccess(false);
+      }, 3000);
+    }, 500);
+  };
 
   useEffect(() => {
     setIsLoaded(true);
-  }, []);
+    setVisibleSections(prev => ({
+      ...prev,
+      hero: true
+    }));
+    
+    // Add scroll event listener with passive option for better performance
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    // Initial check for visible sections
+    handleScroll();
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [handleScroll]);
 
   return (
     <div className="container mx-auto px-4 py-12 relative">
       {/* Hero Section */}
-      <section className="flex flex-col md:flex-row items-center justify-between mb-20 relative z-10">
-        <div className={`md:w-3/5 mb-10 md:mb-0 transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+      <section className="flex flex-col md:flex-row items-center justify-between mb-40 min-h-[80vh] relative z-10">
+        <div className={`md:w-3/5 mb-10 md:mb-0 transition-all duration-500 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
             <span className="text-alterview-blue">Revolutionizing</span> <br />
             <span className="bg-clip-text text-transparent bg-alterview-gradient">Student Interviews</span>
@@ -25,13 +109,13 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4">
             <Link 
               href="/student-login" 
-              className="px-8 py-3 bg-alterview-indigo hover:bg-alterview-violet text-white rounded-xl font-medium transition-colors shadow-soft text-center"
+              className="px-8 py-3 bg-alterview-indigo hover:bg-alterview-violet text-white rounded-xl font-medium transition-colors duration-200 shadow-soft text-center active:scale-95 transform border-2 border-alterview-indigo"
             >
               Student Portal
             </Link>
             <Link 
               href="/teacher-login" 
-              className="px-8 py-3 border-2 border-alterview-indigo text-alterview-indigo hover:bg-alterview-indigo hover:text-white rounded-xl font-medium transition-colors text-center"
+              className="px-8 py-3 border-2 border-alterview-indigo text-alterview-indigo hover:bg-alterview-indigo hover:text-white rounded-xl font-medium transition-colors duration-200 text-center active:scale-95 transform"
             >
               Teacher Portal
             </Link>
@@ -51,50 +135,124 @@ export default function Home() {
       </div>
 
       {/* Features Section */}
-      <section className="mb-20 relative z-10">
-        <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">What Makes Alterview Special</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="bg-white/90 backdrop-blur-md p-8 rounded-xl shadow-apple hover:shadow-lg transition-shadow">
-            <div className="bg-alterview-blue/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-alterview-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
+      <section 
+        ref={featuresRef} 
+        className="mb-40 py-16 relative z-10"
+      >
+        <div className={`transition-all duration-500 ${
+          visibleSections.features ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+        }`}>
+          <h2 className="text-3xl font-bold text-center mb-16 text-gray-800">What Makes Alterview Special</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-white/90 backdrop-blur-md p-8 rounded-xl shadow-apple hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
+              <div className="bg-alterview-blue/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-alterview-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold mb-3 text-gray-800">AI-Powered Conversations</h3>
+              <p className="text-gray-600">Natural, adaptive interview experiences that respond intelligently to student answers.</p>
             </div>
-            <h3 className="text-xl font-semibold mb-3 text-gray-800">AI-Powered Conversations</h3>
-            <p className="text-gray-600">Natural, adaptive interview experiences that respond intelligently to student answers.</p>
-          </div>
-          <div className="bg-white/90 backdrop-blur-md p-8 rounded-xl shadow-apple hover:shadow-lg transition-shadow">
-            <div className="bg-alterview-indigo/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-alterview-indigo" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
+            <div className="bg-white/90 backdrop-blur-md p-8 rounded-xl shadow-apple hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
+              <div className="bg-alterview-indigo/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-alterview-indigo" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold mb-3 text-gray-800">Detailed Assessments</h3>
+              <p className="text-gray-600">Comprehensive reports and insights that help teachers understand their students better.</p>
             </div>
-            <h3 className="text-xl font-semibold mb-3 text-gray-800">Detailed Assessments</h3>
-            <p className="text-gray-600">Comprehensive reports and insights that help teachers understand their students better.</p>
-          </div>
-          <div className="bg-white/90 backdrop-blur-md p-8 rounded-xl shadow-apple hover:shadow-lg transition-shadow">
-            <div className="bg-alterview-purple/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-alterview-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
+            <div className="bg-white/90 backdrop-blur-md p-8 rounded-xl shadow-apple hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
+              <div className="bg-alterview-purple/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-alterview-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold mb-3 text-gray-800">Seamless Experience</h3>
+              <p className="text-gray-600">Easy to use platform for both students and teachers with minimal setup required.</p>
             </div>
-            <h3 className="text-xl font-semibold mb-3 text-gray-800">Seamless Experience</h3>
-            <p className="text-gray-600">Easy to use platform for both students and teachers with minimal setup required.</p>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="bg-gradient-to-r from-alterview-blue via-alterview-indigo to-alterview-purple rounded-xl p-10 text-white text-center shadow-apple">
-        <h2 className="text-3xl font-bold mb-4">Ready to Transform Student Interviews?</h2>
-        <p className="mb-8 max-w-lg mx-auto">Join educators who are revolutionizing the way they assess student understanding.</p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link 
-            href="/teacher-login" 
-            className="px-8 py-3 bg-white text-alterview-indigo hover:bg-gray-100 rounded-xl font-medium transition-colors"
-          >
-            Get Started Today
-          </Link>
+      <section 
+        ref={ctaRef}
+        className="py-16 relative z-10"
+      >
+        <div className={`transition-all duration-500 ${
+          visibleSections.cta ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+        }`}>
+          <div className="bg-gradient-to-r from-alterview-blue via-alterview-indigo to-alterview-purple rounded-xl p-10 text-white shadow-apple">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold mb-4">Ready to Transform Student Interviews?</h2>
+              <p className="max-w-lg mx-auto">Join educators who are revolutionizing the way they assess student understanding.</p>
+            </div>
+            
+            <div className="max-w-md mx-auto">
+              {formSuccess ? (
+                <div className="bg-white/20 backdrop-blur-md rounded-xl p-6 text-center animate-fadeIn">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-white mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <h3 className="text-xl font-semibold mb-2">Thank You!</h3>
+                  <p>We've received your information and will be in touch soon.</p>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="bg-white/10 backdrop-blur-md rounded-xl p-6">
+                  <div className="mb-4">
+                    <label htmlFor="name" className="block text-sm font-medium mb-1 text-white/90">Name</label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-4 py-2.5 bg-white/20 border border-white/30 rounded-lg focus:ring-2 focus:ring-white/50 focus:outline-none text-white placeholder-white/50 transition-all duration-200"
+                      placeholder="Your name"
+                    />
+                  </div>
+                  
+                  <div className="mb-4">
+                    <label htmlFor="email" className="block text-sm font-medium mb-1 text-white/90">Email</label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-4 py-2.5 bg-white/20 border border-white/30 rounded-lg focus:ring-2 focus:ring-white/50 focus:outline-none text-white placeholder-white/50 transition-all duration-200"
+                      placeholder="you@example.com"
+                    />
+                  </div>
+                  
+                  <div className="mb-6">
+                    <label htmlFor="institution" className="block text-sm font-medium mb-1 text-white/90">Institution</label>
+                    <input
+                      type="text"
+                      id="institution"
+                      name="institution"
+                      value={formData.institution}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-4 py-2.5 bg-white/20 border border-white/30 rounded-lg focus:ring-2 focus:ring-white/50 focus:outline-none text-white placeholder-white/50 transition-all duration-200"
+                      placeholder="School or university"
+                    />
+                  </div>
+                  
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`w-full px-8 py-3 bg-white text-alterview-indigo hover:bg-gray-100 rounded-xl font-medium transition-all duration-200 active:scale-98 transform ${isSubmitting ? 'opacity-75 cursor-not-allowed' : 'hover:shadow-md'}`}
+                  >
+                    {isSubmitting ? 'Processing...' : 'Get Started Today'}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
         </div>
       </section>
     </div>
@@ -121,7 +279,7 @@ function NetworkGraph({ contained = false }: { contained?: boolean }) {
     if (!canvasRef.current) return;
     
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
     
     // Set canvas size
@@ -137,7 +295,7 @@ function NetworkGraph({ contained = false }: { contained?: boolean }) {
       }
     };
     
-    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('resize', resizeCanvas, { passive: true });
     resizeCanvas();
     
     // Create nodes
@@ -154,9 +312,9 @@ function NetworkGraph({ contained = false }: { contained?: boolean }) {
           radius: contained ? (3 + Math.random() * 4) : (4 + Math.random() * 6), // Smaller nodes if contained
           color: nodeColors[Math.floor(Math.random() * nodeColors.length)],
           velocity: {
-            x: (Math.random() - 0.5) * (contained ? 0.3 : 0.4), // Slower movement for contained
-            y: (Math.random() - 0.5) * (contained ? 0.3 : 0.4),
-            z: (Math.random() - 0.5) * (contained ? 0.2 : 0.3),
+            x: (Math.random() - 0.5) * (contained ? 0.4 : 0.5), // Slightly faster movement
+            y: (Math.random() - 0.5) * (contained ? 0.4 : 0.5),
+            z: (Math.random() - 0.5) * (contained ? 0.3 : 0.4),
           },
           connections: [] as number[],
         });
@@ -248,22 +406,21 @@ function NetworkGraph({ contained = false }: { contained?: boolean }) {
         ctx.fill();
       }
       
+      // Continue animation
       animationRef.current = requestAnimationFrame(animate);
     };
     
-    animate();
+    // Start animation
+    animationRef.current = requestAnimationFrame(animate);
     
+    // Cleanup
     return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
       window.removeEventListener('resize', resizeCanvas);
-      cancelAnimationFrame(animationRef.current);
     };
-  }, []); // Empty dependency array to run only once
+  }, [contained]);
   
-  return (
-    <canvas 
-      ref={canvasRef} 
-      className={`w-full h-full ${contained ? '' : 'fixed top-0 left-0'}`}
-      style={{ opacity: contained ? 1 : 0.3 }} // Higher opacity for contained version
-    />
-  );
+  return <canvas ref={canvasRef} className="w-full h-full" />;
 } 
