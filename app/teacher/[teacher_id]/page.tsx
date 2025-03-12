@@ -48,6 +48,10 @@ export default function TeacherDashboard({
   params: { teacher_id: string };
 }) {
   const [loaded, setLoaded] = useState(false);
+  const [assessments, setAssessments] = useState(mockAssessments);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     setLoaded(true);
@@ -152,13 +156,13 @@ export default function TeacherDashboard({
                 Your Assessments
               </h2>
             </div>
-            <span className="text-sm text-gray-500">{mockAssessments.length} total</span>
+            <span className="text-sm text-gray-500">{assessments.length} total</span>
           </div>
 
           {/* Assessment list */}
-          {mockAssessments.length > 0 ? (
+          {assessments.length > 0 ? (
             <div className="divide-y divide-gray-100">
-              {mockAssessments.map((assessment, index) => (
+              {assessments.map((assessment, index) => (
                 <div
                   key={assessment.id}
                   className="hover:bg-gray-50/80 transition-colors"

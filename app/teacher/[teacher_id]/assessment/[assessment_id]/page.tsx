@@ -1,11 +1,12 @@
+
 "use client";
 
 import { Inter } from "next/font/google";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import {
-  fetchAssessmentStudents,
-  generateAssessmentInsights
+  fetchAssessmentMindMap,
+  updateAssessmentMindMap,
 } from "@/services/assessmentService";
 import { useRouter } from "next/navigation";
 import FloatingIcons from "@/components/app/FloatingIcons";
@@ -29,15 +30,7 @@ import {
 
 const inter = Inter({ subsets: ["latin"] });
 
-// Interface for insight data
-interface Insight {
-  title: string;
-  description: string;
-  percentage: number;
-  color: string;
-}
-
-// Mock data for student results - will be replaced with API data
+// Mock data for student results
 const mockStudents = [
   { id: "student1", name: "Alex Johnson", status: "Completed", score: 85 },
   { id: "student2", name: "Jamie Smith", status: "In Progress", score: null },
@@ -46,15 +39,7 @@ const mockStudents = [
   { id: "student5", name: "Jordan Lee", status: "Completed", score: 78 },
 ];
 
-// Mock data for assessment details
-const mockAssessment = {
-  id: "assessment1",
-  name: "Data Structures and Algorithms",
-  created_at: "2023-02-28T12:00:00Z",
-  description: "An assessment covering algorithm analysis, time complexity, and space complexity"
-};
-
-// Mock data for the aggregated mindmap insights - will be replaced with API data
+// Mock data for the aggregated mindmap insights
 const mockAggregatedData = {
   topic: {
     name: "Algorithm Analysis",
@@ -84,8 +69,8 @@ const mockAggregatedData = {
   }
 };
 
-// Mock insights data - will be replaced with API data
-const mockInsights: Insight[] = [
+// Mock insights data
+const mockInsights = [
   {
     title: "Strong Understanding",
     description: "Most students grasp the core concept of algorithm analysis and its importance.",
@@ -115,29 +100,10 @@ export default function AssessmentReview({
   const [loaded, setLoaded] = useState(false);
   const [showInsights, setShowInsights] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [assessment, setAssessment] = useState<any>(mockAssessment);
-  const [students, setStudents] = useState(mockStudents);
-  const [insights, setInsights] = useState<any>(null);
-  const [loadingAssessment, setLoadingAssessment] = useState(false);
-  const [loadingStudents, setLoadingStudents] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoaded(true);
-    
-    // Immediately show insights for better demo experience
-    setInsights({
-      topic: mockAggregatedData.topic,
-      insights: mockInsights
-    });
-    setShowInsights(true);
-    
-    // Use mock data instead of API calls
-    setAssessment(mockAssessment);
-    setStudents(mockStudents);
-    setLoadingAssessment(false);
-    setLoadingStudents(false);
-  }, [params.assessment_id]);
+  }, []);
 
   const handleEditMindMap = () => {
     router.push(
@@ -145,46 +111,20 @@ export default function AssessmentReview({
     );
   };
 
-  const handleGenerateInsights = async () => {
+  const handleGenerateInsights = () => {
     setIsGenerating(true);
     
-    // Simulate API delay
+    // Simulate API call to generate insights
     setTimeout(() => {
-      setInsights({
-        topic: mockAggregatedData.topic,
-        insights: mockInsights
-      });
-      setShowInsights(true);
       setIsGenerating(false);
-    }, 1500);
+      setShowInsights(true);
+    }, 2000);
   };
 
   const handleDownloadReport = () => {
     // Placeholder for download report functionality
     alert("Report download functionality will be integrated with backend API");
   };
-
-  const formatDate = (dateString: string) => {
-    try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-    } catch (e) {
-      return "Unknown date";
-    }
-  };
-
-  const getCompletionRate = () => {
-    if (!students || students.length === 0) return 0;
-    const completedCount = students.filter(s => s.status === "Completed").length;
-    return Math.round((completedCount / students.length) * 100);
-  };
-
-  // Use assessment data if available, otherwise show loading or error state
-  const assessmentTitle = assessment ? assessment.name : loadingAssessment ? "Loading..." : "Unknown Assessment";
-  const assessmentCreatedDate = assessment ? formatDate(assessment.created_at) : "Unknown date";
 
   return (
     <div className="relative min-h-[calc(100vh-10rem)] px-4 py-8 overflow-hidden">
@@ -208,13 +148,8 @@ export default function AssessmentReview({
                 className="text-gray-500 text-lg animate-fadeIn"
                 style={{ animationDelay: "100ms" }}
               >
-                {loadingAssessment ? "Loading assessment details..." : `Assessment ID: ${params.assessment_id}`}
+                Assessment ID: {params.assessment_id}
               </p>
-              {error && (
-                <p className="text-amber-600 text-sm mt-2 animate-fadeIn">
-                  {error}
-                </p>
-              )}
             </div>
 
             <div className="flex items-center gap-3">
@@ -222,7 +157,6 @@ export default function AssessmentReview({
                 onClick={handleEditMindMap}
                 className="inline-flex items-center px-5 py-2.5 bg-alterview-gradient text-white rounded-xl hover:shadow-md transition-all duration-300 animate-fadeIn"
                 style={{ animationDelay: "150ms" }}
-                disabled={loadingAssessment}
               >
                 <Edit3 className="h-4 w-4 mr-2" />
                 <span>Edit Mind-map</span>
@@ -252,37 +186,36 @@ export default function AssessmentReview({
             </h2>
           </div>
 
-          {loadingAssessment ? (
-            <div className="p-8 flex justify-center items-center">
-              <div className="h-6 w-6 border-2 border-alterview-indigo border-t-transparent rounded-full animate-spin"></div>
-              <span className="ml-3 text-gray-600">Loading assessment details...</span>
-            </div>
-          ) : (
-            <div className="p-8">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-500">Title</p>
-                  <p className="font-medium">
-                    {assessmentTitle}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Created</p>
-                  <p className="font-medium">{assessmentCreatedDate}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Total Students</p>
-                  <p className="font-medium">{loadingStudents ? "Loading..." : students.length}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Completion Rate</p>
-                  <p className="font-medium">
-                    {loadingStudents ? "Loading..." : `${getCompletionRate()}%`}
-                  </p>
-                </div>
+          <div className="p-8">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-500">Title</p>
+                <p className="font-medium">
+                  Data Structures and Algorithms (CSE 310)
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Created</p>
+                <p className="font-medium">June 15, 2023</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Total Students</p>
+                <p className="font-medium">{mockStudents.length}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Completion Rate</p>
+                <p className="font-medium">
+                  {Math.round(
+                    (mockStudents.filter((s) => s.status === "Completed")
+                      .length /
+                      mockStudents.length) *
+                      100
+                  )}
+                  %
+                </p>
               </div>
             </div>
-          )}
+          </div>
         </div>
 
         {/* Aggregated Insights Section */}
@@ -299,9 +232,9 @@ export default function AssessmentReview({
               </p>
               <button
                 onClick={handleGenerateInsights}
-                disabled={isGenerating || loadingAssessment || loadingStudents}
+                disabled={isGenerating}
                 className={`px-6 py-3 bg-alterview-gradient text-white rounded-xl hover:shadow-md transition-all duration-300 flex items-center ${
-                  isGenerating || loadingAssessment || loadingStudents ? "opacity-75" : ""
+                  isGenerating ? "opacity-75" : ""
                 }`}
               >
                 {isGenerating ? (
@@ -318,96 +251,170 @@ export default function AssessmentReview({
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               {/* Insights Cards */}
-              <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-apple overflow-hidden">
-                <div className="px-8 py-6 border-b border-gray-100 flex items-center">
-                  <Lightbulb className="h-5 w-5 text-alterview-indigo mr-2" />
-                  <h2 className="text-xl font-semibold text-gray-800">Key Insights</h2>
-                </div>
-                <div className="divide-y divide-gray-100">
+              <div className="col-span-2">
+                <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-apple overflow-hidden transition-all duration-700 ease-out h-full">
+                  <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Lightbulb className="h-5 w-5 text-alterview-indigo mr-2" />
+                      <h2 className="text-xl font-semibold text-gray-800">
+                        Class Insights
+                      </h2>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button 
+                        onClick={handleDownloadReport}
+                        className="p-2 text-gray-500 hover:text-alterview-indigo transition-colors rounded-lg hover:bg-gray-50"
+                      >
+                        <Download className="h-4 w-4" />
+                      </button>
+                      <button 
+                        className="p-2 text-gray-500 hover:text-alterview-indigo transition-colors rounded-lg hover:bg-gray-50"
+                      >
+                        <Share2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
                   <div className="p-8">
                     <div className="grid grid-cols-1 gap-6">
-                      {(insights?.insights || mockInsights).map((insight: Insight, index: number) => (
+                      {mockInsights.map((insight, index) => (
                         <div 
                           key={index} 
-                          className={`bg-${insight.color}-50 border border-${insight.color}-200 rounded-xl p-4`}
+                          className="flex items-start p-4 border border-gray-100 rounded-xl hover:shadow-sm transition-all bg-white"
                         >
-                          <div className="flex items-start justify-between">
-                            <h3 className={`text-${insight.color}-800 font-medium`}>{insight.title}</h3>
-                            <span className={`bg-${insight.color}-100 text-${insight.color}-800 text-xs font-medium px-2.5 py-0.5 rounded-full`}>
-                              {insight.percentage}%
-                            </span>
+                          <div className={`p-3 rounded-full bg-${insight.color}-100 text-${insight.color}-600 mr-4 flex-shrink-0`}>
+                            {insight.title.includes("Strong") && <CheckCircle className="h-5 w-5" />}
+                            {insight.title.includes("Misconception") && <AlertCircle className="h-5 w-5" />}
+                            {insight.title.includes("Gap") && <BarChart className="h-5 w-5" />}
                           </div>
-                          <p className={`text-${insight.color}-700 text-sm mt-2`}>{insight.description}</p>
+                          <div className="flex-1">
+                            <div className="flex justify-between items-start mb-2">
+                              <h4 className="font-medium text-gray-800">{insight.title}</h4>
+                              <span className={`text-sm font-medium text-${insight.color}-600`}>
+                                {insight.percentage}%
+                              </span>
+                            </div>
+                            <p className="text-gray-600 text-sm">{insight.description}</p>
+                            <div className="h-1.5 w-full bg-gray-100 rounded-full mt-3 overflow-hidden">
+                              <div 
+                                className={`h-full bg-${insight.color}-500 rounded-full`} 
+                                style={{ width: `${insight.percentage}%` }}
+                              ></div>
+                            </div>
+                          </div>
                         </div>
                       ))}
+                    </div>
+                    <div className="mt-6 pt-6 border-t border-gray-100">
+                      <h4 className="font-medium text-gray-800 mb-3">Recommended Actions</h4>
+                      <ul className="space-y-2">
+                        <li className="flex items-start">
+                          <div className="h-5 w-5 text-emerald-500 mr-2 flex-shrink-0">•</div>
+                          <p className="text-sm text-gray-600">Review logarithmic complexity concepts with a focus on practical applications.</p>
+                        </li>
+                        <li className="flex items-start">
+                          <div className="h-5 w-5 text-emerald-500 mr-2 flex-shrink-0">•</div>
+                          <p className="text-sm text-gray-600">Address the common misconception about time complexity vs. actual runtime.</p>
+                        </li>
+                        <li className="flex items-start">
+                          <div className="h-5 w-5 text-emerald-500 mr-2 flex-shrink-0">•</div>
+                          <p className="text-sm text-gray-600">Provide additional exercises on analyzing algorithms with different complexity classes.</p>
+                        </li>
+                      </ul>
                     </div>
                   </div>
                 </div>
               </div>
               
-              {/* Mind Map Visualization */}
-              <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-apple overflow-hidden">
-                <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
-                  <div className="flex items-center">
-                    <BarChart className="h-5 w-5 text-alterview-indigo mr-2" />
-                    <h2 className="text-xl font-semibold text-gray-800">Understanding Analysis</h2>
+              {/* Aggregate Mind Map */}
+              <div className="col-span-1">
+                <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-apple overflow-hidden transition-all duration-700 ease-out h-full flex flex-col">
+                  <div className="px-8 py-6 border-b border-gray-100 flex items-center">
+                    <FileText className="h-5 w-5 text-alterview-indigo mr-2" />
+                    <h2 className="text-xl font-semibold text-gray-800">
+                      Class Knowledge Map
+                    </h2>
                   </div>
-                  <button
-                    onClick={handleDownloadReport}
-                    className="text-sm text-alterview-indigo hover:text-alterview-violet transition-colors flex items-center"
-                  >
-                    <Download className="h-3.5 w-3.5 mr-1" />
-                    <span>Download Report</span>
-                  </button>
-                </div>
-                <div className="p-6">
-                  <div className="h-full w-full">
-                    <MindMap 
-                      data={insights?.topic || mockAggregatedData.topic} 
-                      className="w-full h-full min-h-[400px]" 
-                    />
+                  <div className="p-2 flex-1 min-h-[400px]">
+                    <div className="h-full w-full">
+                      <MindMap 
+                        data={mockAggregatedData} 
+                        className="w-full h-full min-h-[400px]" 
+                      />
+                    </div>
+                  </div>
+                  <div className="px-8 py-4 border-t border-gray-100 bg-gray-50">
+                    <div className="flex justify-between items-center">
+                      <p className="text-xs text-gray-500">Understanding Legend:</p>
+                      <div className="flex space-x-2">
+                        <div className="flex items-center">
+                          <div className="h-2 w-2 rounded-full bg-red-500 mr-1"></div>
+                          <span className="text-xs">Low</span>
+                        </div>
+                        <div className="flex items-center">
+                          <div className="h-2 w-2 rounded-full bg-yellow-500 mr-1"></div>
+                          <span className="text-xs">Medium</span>
+                        </div>
+                        <div className="flex items-center">
+                          <div className="h-2 w-2 rounded-full bg-green-500 mr-1"></div>
+                          <span className="text-xs">High</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           )}
         </div>
-        
-        {/* Student Results Section */}
+
+        {/* Student Results section */}
         <div
-          className="bg-white/90 backdrop-blur-md rounded-2xl mb-6 shadow-apple overflow-hidden transition-all duration-700 ease-out"
+          className="bg-white/90 backdrop-blur-md rounded-2xl shadow-apple animate-scaleIn overflow-hidden transition-all duration-700 ease-out"
           style={{ animationDelay: "200ms" }}
         >
           {/* Section header */}
           <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
             <div className="flex items-center">
               <Users className="h-5 w-5 text-alterview-indigo mr-2" />
-              <h2 className="text-xl font-semibold text-gray-800">Student Results</h2>
+              <h2 className="text-xl font-semibold text-gray-800">
+                Student Results
+              </h2>
             </div>
-            <Link
-              href={`/teacher/${params.teacher_id}`}
-              className="text-sm text-alterview-indigo hover:text-alterview-violet transition-colors"
-            >
-              View All
-            </Link>
+            <span className="text-sm text-gray-500">
+              {mockStudents.length} total
+            </span>
           </div>
 
-          {loadingStudents ? (
-            <div className="p-8 flex justify-center items-center">
-              <div className="h-6 w-6 border-2 border-alterview-indigo border-t-transparent rounded-full animate-spin"></div>
-              <span className="ml-3 text-gray-600">Loading student results...</span>
-            </div>
-          ) : students.length > 0 ? (
-            <div className="divide-y divide-gray-100">
-              {students.map((student, index) => (
-                <div key={student.id} className="px-8 py-4 hover:bg-gray-50/80 transition-colors flex justify-between items-center">
-                  <div>
-                    <div className="font-medium">{student.name}</div>
-                    <div className="flex items-center mt-1 text-sm">
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white/0">
+              <thead>
+                <tr className="bg-gray-50/80 text-gray-600 uppercase text-sm leading-normal">
+                  <th className="py-3 px-8 text-left">Student</th>
+                  <th className="py-3 px-6 text-left">Status</th>
+                  <th className="py-3 px-6 text-left">Score</th>
+                  <th className="py-3 px-8 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="text-gray-600 text-sm">
+                {mockStudents.map((student, index) => (
+                  <tr
+                    key={student.id}
+                    className="border-b border-gray-100 hover:bg-gray-50/80 transition-colors"
+                    style={{ animationDelay: `${250 + index * 50}ms` }}
+                  >
+                    <td className="py-4 px-8 text-left">
+                      <div className="font-medium text-gray-800">
+                        {student.name}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        ID: {student.id}
+                      </div>
+                    </td>
+                    <td className="py-4 px-6 text-left">
                       <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${
+                        className={`px-2 py-1 rounded-full text-xs ${
                           student.status === "Completed"
                             ? "bg-green-100 text-green-800"
                             : student.status === "In Progress"
@@ -415,37 +422,36 @@ export default function AssessmentReview({
                             : "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        {student.status === "Completed" ? (
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                        ) : student.status === "In Progress" ? (
-                          <Activity className="h-3 w-3 mr-1" />
-                        ) : (
-                          <AlertCircle className="h-3 w-3 mr-1" />
-                        )}
                         {student.status}
                       </span>
-                      {student.score !== null && (
-                        <span className="ml-3 bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-xs font-medium flex items-center">
-                          <BarChart2 className="h-3 w-3 mr-1" />
-                          Score: {student.score}%
-                        </span>
+                    </td>
+                    <td className="py-4 px-6 text-left">
+                      {student.score !== null ? (
+                        <div className="flex items-center">
+                          <Activity className="h-3.5 w-3.5 text-alterview-indigo mr-1" />
+                          <span>{student.score}/100</span>
+                        </div>
+                      ) : (
+                        "-"
                       )}
-                    </div>
-                  </div>
-                  <Link
-                    href={`/teacher/${params.teacher_id}/student/${student.id}/results/${params.assessment_id}`}
-                    className="px-4 py-2 bg-alterview-indigo/10 hover:bg-alterview-indigo/20 rounded-lg text-alterview-indigo text-sm transition-colors"
-                  >
-                    View Results
-                  </Link>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="px-8 py-6 text-center text-gray-500">
-              No student results available for this assessment yet.
-            </div>
-          )}
+                    </td>
+                    <td className="py-4 px-8 text-right">
+                      {student.status === "Completed" ? (
+                        <Link
+                          href={`/teacher/${params.teacher_id}/student/${student.id}/results/${params.assessment_id}`}
+                          className="text-alterview-indigo hover:text-alterview-violet transition-colors font-medium"
+                        >
+                          View Results
+                        </Link>
+                      ) : (
+                        <span className="text-gray-400">Pending</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
