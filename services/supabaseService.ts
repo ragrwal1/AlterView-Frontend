@@ -177,3 +177,14 @@ export async function fetchFromSupabase(tableName: string, query?: any) {
 }
 
 export { supabase }; 
+
+
+//getPrompts from supabase in  Assessment table using id , return system_prompt and first_question
+export async function getPrompts(id: number) {
+  const { data, error } = await supabase
+    .from('Assessment')
+    .select('system_prompt, first_question')
+    .eq('id', id)
+    .single();
+}
+
