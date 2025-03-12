@@ -171,21 +171,28 @@ export function useVapi(assessmentId?: string) {
       
       console.log('Submitting assessment results with payload:', payload);
       
-      // Make the API request with CORS headers
-      fetch('https://alterview-api.vercel.app/api/v1/assessment-results/', {
-        method: 'POST',
+      // Construct query parameters for GET request
+      const queryParams = new URLSearchParams({
+        student_id: payload.student_id.toString(),
+        assessment_id: payload.assessment_id.toString(),
+        transcript: payload.transcript,
+        mindmap: payload.mindmap
+      }).toString();
+      
+      // Make the API request with CORS headers using GET method
+      fetch(`https://alterview-api.vercel.app/api/v1/assessment-results/?${queryParams}`, {
+        method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Origin': window.location.origin,
-          // Add additional headers that might help with CORS
-          'Access-Control-Request-Method': 'POST',
-          'Access-Control-Request-Headers': 'Content-Type, Accept'
+          // Update headers for GET request
+          'Access-Control-Request-Method': 'GET',
+          'Access-Control-Request-Headers': 'Accept'
         },
         // Add credentials if needed for cookies/auth
         credentials: 'include',
-        mode: 'cors',
-        body: JSON.stringify(payload),
+        mode: 'cors'
+        // No body for GET request
       })
       .then(async response => {
         // Log the complete response information
