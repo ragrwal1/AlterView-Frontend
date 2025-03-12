@@ -7,24 +7,42 @@ const inter = Inter({ subsets: ["latin"] });
 
 interface AssessmentResult {
   id: number;
-  student_id: string;
-  assessment_id: string;
-  score: number;
-  feedback: string;
-  completed_at: string;
-  answers: Record<string, any>[];
+  created_at: string;
+  assessment_id: number;
+  teacher_id: number;
+  student_id: number;
+  voice_recording_id: number | null;
+  transcript: string;
+  mindmap: any | null;
 }
 
 export default function StudentResultsPage({ params }: { params: { student_id: string, assessment_id: string } }) {
   const [result, setResult] = useState<AssessmentResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [parsedTranscript, setParsedTranscript] = useState<{speaker: string, text: string}[]>([]);
+
+  useEffect(() => {
+    // Parse transcript into structured format
+    if (result?.transcript) {
+      const lines = result.transcript.split('\n').filter(line => line.trim() !== '');
+      const parsedLines = lines.map(line => {
+        const [speaker, ...textParts] = line.split(': ');
+        return {
+          speaker: speaker.trim(),
+          text: textParts.join(': ').trim()
+        };
+      });
+      setParsedTranscript(parsedLines);
+    }
+  }, [result?.transcript]);
 
   useEffect(() => {
     async function fetchResults() {
       try {
         // This is a placeholder API endpoint - replace with your actual endpoint
-        const response = await fetch(`https://alterview-api.vercel.app/api/v1/students/${params.student_id}/assessments/${params.assessment_id}/results`);
+        console.log(`https://alterview-api.vercel.app/api/v1/assessment-results/${params.assessment_id}`);
+        const response = await fetch(`https://alterview-api.vercel.app/api/v1/assessment-results/${params.assessment_id}`);
         
         if (!response.ok) {
           throw new Error('Failed to fetch assessment results');
@@ -92,49 +110,59 @@ export default function StudentResultsPage({ params }: { params: { student_id: s
                   
                   <div className="flex flex-col space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-500">Student ID:</span>
-                      <span className="font-mono bg-gray-100 px-2 py-1 rounded text-indigo-700">{params.student_id}</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
                       <span className="text-gray-500">Assessment ID:</span>
-                      <span className="font-mono bg-gray-100 px-2 py-1 rounded text-indigo-700">{params.assessment_id}</span>
+                      <span className="font-mono bg-gray-100 px-2 py-1 rounded text-indigo-700">{result?.assessment_id || params.assessment_id}</span>
                     </div>
                     
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-500">Score:</span>
-                      <span className="font-mono bg-indigo-100 px-3 py-1 rounded-full text-indigo-700 font-bold">
-                        {result?.score || 'N/A'}
-                      </span>
+                      <span className="text-gray-500">Student ID:</span>
+                      <span className="font-mono bg-gray-100 px-2 py-1 rounded text-indigo-700">{result?.student_id || params.student_id}</span>
                     </div>
                     
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-500">Completed:</span>
+                      <span className="text-gray-500">Teacher ID:</span>
+                      <span className="font-mono bg-gray-100 px-2 py-1 rounded text-indigo-700">{result?.teacher_id || 'N/A'}</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-500">Created At:</span>
                       <span className="font-mono bg-gray-100 px-2 py-1 rounded text-indigo-700">
-                        {result?.completed_at ? new Date(result.completed_at).toLocaleString() : 'N/A'}
+                        {result?.created_at ? new Date(result.created_at).toLocaleString() : 'N/A'}
                       </span>
                     </div>
                   </div>
                   
-                  <div className="mt-6">
-                    <h4 className="text-md font-semibold text-gray-700 mb-2">Feedback</h4>
-                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                      <p className="text-gray-700">{result?.feedback || 'No feedback available'}</p>
-                    </div>
-                  </div>
-                  
-                  {result?.answers && result.answers.length > 0 && (
+                  {/* Transcript Section */}
+                  {result?.transcript && (
                     <div className="mt-6">
-                      <h4 className="text-md font-semibold text-gray-700 mb-2">Answers</h4>
-                      <div className="space-y-3">
-                        {result.answers.map((answer, index) => (
-                          <div key={index} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                            <p className="text-gray-600 font-medium mb-1">Question {index + 1}</p>
-                            <p className="text-gray-700">{answer.question}</p>
-                            <p className="text-gray-600 font-medium mt-2 mb-1">Your Answer</p>
-                            <p className="text-gray-700">{answer.response}</p>
-                          </div>
-                        ))}
+                      <h4 className="text-md font-semibold text-gray-700 mb-2">Interview Transcript</h4>
+                      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-left">
+                        <div className="space-y-4">
+                          {parsedTranscript.map((line, index) => (
+                            <div key={index} className={`flex ${line.speaker === 'USER' ? 'justify-end' : 'justify-start'}`}>
+                              <div className={`max-w-[80%] rounded-lg p-3 ${
+                                line.speaker === 'USER' 
+                                  ? 'bg-indigo-100 text-indigo-800' 
+                                  : 'bg-gray-200 text-gray-800'
+                              }`}>
+                                <p className="text-xs font-semibold mb-1">{line.speaker}</p>
+                                <p>{line.text}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Mind Map Section (if available) */}
+                  {result?.mindmap && (
+                    <div className="mt-6">
+                      <h4 className="text-md font-semibold text-gray-700 mb-2">Mind Map</h4>
+                      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <pre className="text-xs overflow-auto text-left">
+                          {JSON.stringify(result.mindmap, null, 2)}
+                        </pre>
                       </div>
                     </div>
                   )}
