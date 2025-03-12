@@ -173,12 +173,20 @@ export function useVapi(assessmentId?: string) {
       
       console.log('Submitting assessment results with payload:', payload);
       
-      // Make the API request
+      // Make the API request with CORS headers
       fetch('https://alterview-api.vercel.app/api/v1/assessment-results/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Origin': window.location.origin,
+          // Add additional headers that might help with CORS
+          'Access-Control-Request-Method': 'POST',
+          'Access-Control-Request-Headers': 'Content-Type, Accept'
         },
+        // Add credentials if needed for cookies/auth
+        credentials: 'include',
+        mode: 'cors',
         body: JSON.stringify(payload),
       })
       .then(async response => {
@@ -214,6 +222,10 @@ export function useVapi(assessmentId?: string) {
       })
       .catch(error => {
         console.error('Error submitting assessment results:', error);
+        
+        // Log the transcript to the console as a fallback
+        console.log('Transcript that would have been submitted:');
+        console.log(finalTranscript);
         
         // Still redirect even if the API call fails
         setTimeout(() => {
