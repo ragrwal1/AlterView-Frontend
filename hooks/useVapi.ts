@@ -181,10 +181,27 @@ export function useVapi(assessmentId?: string) {
         },
         body: JSON.stringify(payload),
       })
-      .then(response => {
+      .then(async response => {
+        // Log the complete response information
+        console.log('API Response Status:', response.status, response.statusText);
+        
+        // Clone the response to read it twice (once for logging, once for processing)
+        const responseClone = response.clone();
+        
+        try {
+          // Try to parse and log the response body as JSON
+          const responseBody = await responseClone.json();
+          console.log('API Response Body:', responseBody);
+        } catch (e) {
+          // If it's not JSON, try to get it as text
+          const responseText = await responseClone.text();
+          console.log('API Response Text:', responseText);
+        }
+        
         if (!response.ok) {
           throw new Error(`API request failed with status ${response.status}`);
         }
+        
         return response.json();
       })
       .then(data => {
