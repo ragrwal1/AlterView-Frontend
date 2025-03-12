@@ -80,6 +80,8 @@ export default function StudentResultsPage({ params }: { params: { student_id: s
           params.assessment_id
         );
         
+        console.log(resultData);
+
         setResult(resultData);
       } catch (err) {
         console.error("Error loading assessment results:", err);

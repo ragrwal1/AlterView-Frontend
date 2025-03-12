@@ -407,43 +407,35 @@ export async function fetchStudentAssessmentResult(
   assessmentId: string
 ): Promise<any> {
   try {
-    // Get all results for this student
-    const response = await fetch(`${API_BASE_URL}/assessment-results/student/${studentId}`);
+    // Get the result for this assessment
+    const response = await fetch(`${API_BASE_URL}/assessment-results/${assessmentId}`);
     if (!response.ok) {
       throw new Error('Failed to fetch student results');
     }
     
-    const results = await response.json();
+    const result = await response.json();
     
-    // Find the result for this specific assessment
-    const result = results.find((r: any) => 
-      r.assessment_id.toString() === assessmentId
-    );
-    
-    if (!result) {
-      throw new Error('Result not found for this assessment');
-    }
-    
-    // Parse the mindmap and insights fields if they exist
-    if (result.mindmap && typeof result.mindmap === 'string') {
-      try {
-        result.mindmap = JSON.parse(result.mindmap);
-      } catch (e) {
-        console.error("Error parsing mindmap:", e);
-        result.mindmap = null;
+    // Check if we received an array or a single object
+    // If it's an array, find the result for this specific student
+    if (Array.isArray(result)) {
+      const studentResult = result.find((r: any) => 
+        r.student_id.toString() === studentId
+      );
+      
+      if (!studentResult) {
+        throw new Error('Result not found for this student');
       }
+      
+      return processResultData(studentResult);
     }
     
-    if (result.insights && typeof result.insights === 'string') {
-      try {
-        result.insights = JSON.parse(result.insights);
-      } catch (e) {
-        console.error("Error parsing insights:", e);
-        result.insights = null;
-      }
+    // If it's a single object (for a specific assessment result), just use it directly
+    // Verify it's for the correct student
+    if (result.student_id.toString() !== studentId) {
+      throw new Error('Result not found for this student');
     }
     
-    return result;
+    return processResultData(result);
   } catch (error) {
     console.error("Error fetching student assessment result:", error);
     
@@ -462,6 +454,34 @@ export async function fetchStudentAssessmentResult(
       duration: 8.5
     };
   }
+}
+
+/**
+ * Helper function to process the result data
+ * Parses JSON strings in the result data if needed
+ */
+function processResultData(result: any): any {
+  // Parse the mindmap if it's a string
+  if (result.mindmap && typeof result.mindmap === 'string') {
+    try {
+      result.mindmap = JSON.parse(result.mindmap);
+    } catch (e) {
+      console.error("Error parsing mindmap:", e);
+      result.mindmap = null;
+    }
+  }
+  
+  // Parse the insights if it's a string
+  if (result.insights && typeof result.insights === 'string') {
+    try {
+      result.insights = JSON.parse(result.insights);
+    } catch (e) {
+      console.error("Error parsing insights:", e);
+      result.insights = null;
+    }
+  }
+  
+  return result;
 }
 
 /**

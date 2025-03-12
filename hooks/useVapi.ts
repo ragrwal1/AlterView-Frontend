@@ -3,7 +3,7 @@
 import { assistant } from "@/assistants/assistant";
 import { createCustomAssistant } from "@/assistants/assistant";
 import { fetchAssessmentPromptData } from "@/services/assessmentService";
-import { postAssessmentResult } from "@/services/supabaseService";
+import { postAssessmentResult, processMindmap } from "@/services/supabaseService";
 
 import {
   Message,
@@ -276,10 +276,23 @@ export function useVapi(assessmentId?: string) {
         // Store the generated ID in localStorage for potential future use
         localStorage.setItem('assessmentResultId', generatedResultId.toString());
         
-        // Redirect to the results page using the generated result ID
-        setTimeout(() => {
-          router.push(`/student/${studentIdStr}/results/${generatedResultId}`);
-        }, 500);
+        // Process the mindmap before redirecting
+        console.log('Processing mindmap for assessment result ID:', generatedResultId);
+        return processMindmap(generatedResultId)
+          .then(mindmapResult => {
+            console.log('Mindmap processed successfully:', mindmapResult);
+            // Redirect to the results page using the generated result ID
+            setTimeout(() => {
+              router.push(`/student/${studentIdStr}/results/${generatedResultId}`);
+            }, 500);
+          })
+          .catch(mindmapError => {
+            console.error('Error processing mindmap:', mindmapError);
+            // Still redirect even if mindmap processing fails
+            setTimeout(() => {
+              router.push(`/student/${studentIdStr}/results/${generatedResultId}`);
+            }, 500);
+          });
       })
       .catch(error => {
         console.error('Error submitting assessment results:', error);

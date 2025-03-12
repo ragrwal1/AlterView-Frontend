@@ -219,3 +219,38 @@ export async function getStudentName(id: number) {
   
   return data?.name;
 }
+
+//process mindmap method. takes in an assessment result id calls an api, pushes the mindmap to the supabase db, and then returns a good or bad response
+export async function processMindmap(assessmentResultId: number) {
+  try {
+    const response = await fetch(`https://alterview-api.vercel.app/api/v1/assessment-results/${assessmentResultId}/process`, {
+      method: 'GET',
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+    
+    const result = await response.json().then(data => data.mindmap);
+    
+    // Convert the JSON to a string before storing
+    const mindmapString = JSON.stringify(result);
+
+    console.log(mindmapString);
+    
+    const { data, error } = await supabase
+      .from('AssessmentResult')
+      .update({ mindmap: mindmapString })
+      .eq('id', assessmentResultId);
+
+    if (error) {
+      console.error('Error updating mindmap:', error);
+      return null;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error processing mindmap:', error);
+    return null;
+  }
+}
