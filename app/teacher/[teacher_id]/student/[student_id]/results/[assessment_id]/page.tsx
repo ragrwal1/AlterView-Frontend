@@ -1,0 +1,482 @@
+"use client";
+
+import { Inter } from "next/font/google";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import MindMap from "@/components/app/MindMap";
+import FloatingIcons from "@/components/app/FloatingIcons";
+import { ArrowLeftCircle, Download, Edit3, FileText, MessageSquare, Mic, PenTool, BarChart2, HelpCircle, Share2 } from "lucide-react";
+
+const inter = Inter({ subsets: ["latin"] });
+
+// Add this custom CSS for the scrollbar
+const customScrollbarStyles = `
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, rgba(79, 70, 229, 0.6), rgba(59, 130, 246, 0.6));
+    border-radius: 10px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, rgba(79, 70, 229, 0.8), rgba(59, 130, 246, 0.8));
+  }
+`;
+
+interface AssessmentResult {
+  id: number;
+  created_at: string;
+  assessment_id: number;
+  teacher_id: number;
+  student_id: number;
+  voice_recording_id: number | null;
+  transcript: string;
+  mindmap: any | null;
+  score?: number;
+  duration?: number;
+}
+
+// Mock student data for a more complete interface
+const mockStudentData = {
+  name: "Alex Johnson",
+  email: "alex.johnson@university.edu",
+  studentId: "STU-1234",
+  grade: "Undergraduate",
+  program: "Computer Science",
+  avatarUrl: "https://i.pravatar.cc/150?u=alex"
+};
+
+// Mock teacher annotations for the results
+const mockAnnotations = [
+  {
+    id: 1,
+    text: "Student showed excellent understanding of time complexity but struggled with space complexity concepts.",
+    timestamp: "2023-06-16T10:23:45Z",
+    concept: "Time Complexity"
+  },
+  {
+    id: 2,
+    text: "Recommend additional resources on logarithmic algorithms to help with this knowledge gap.",
+    timestamp: "2023-06-16T10:25:12Z",
+    concept: "O(log n)"
+  }
+];
+
+export default function TeacherStudentResultsPage({ params }: { params: { teacher_id: string, student_id: string, assessment_id: string } }) {
+  const [result, setResult] = useState<AssessmentResult | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [parsedTranscript, setParsedTranscript] = useState<{speaker: string, text: string}[]>([]);
+  const [newAnnotation, setNewAnnotation] = useState("");
+  const [annotations, setAnnotations] = useState(mockAnnotations);
+  const [selectedConcept, setSelectedConcept] = useState("");
+  const [concepts, setConcepts] = useState<string[]>(["Time Complexity", "Space Complexity", "Asymptotic Analysis", "O(log n)", "O(n)", "O(n²)"]);
+  const [showAnnotationForm, setShowAnnotationForm] = useState(false);
+
+  // Parse transcript when result changes
+  useEffect(() => {
+    if (result?.transcript) {
+      const lines = result.transcript.split('\n').filter(line => line.trim() !== '');
+      const parsedLines = lines.map(line => {
+        const [speaker, ...textParts] = line.split(': ');
+        return {
+          speaker: speaker.trim(),
+          text: textParts.join(': ').trim()
+        };
+      });
+      setParsedTranscript(parsedLines);
+    }
+  }, [result?.transcript]);
+
+  // Fetch assessment results
+  useEffect(() => {
+    async function fetchResults() {
+      try {
+        // Simulate API call with a timeout
+        setTimeout(() => {
+          // This would normally be an API call to get the results
+          // For now, we'll use sample data
+          fetch('/sample.json')
+            .then(response => response.json())
+            .then(data => {
+              setResult({
+                id: 1,
+                assessment_id: parseInt(params.assessment_id) || 1,
+                student_id: parseInt(params.student_id) || 1,
+                teacher_id: parseInt(params.teacher_id) || 1,
+                created_at: "2023-06-15T14:30:00Z",
+                voice_recording_id: null,
+                transcript: "USER: Hi, I'm here to talk about algorithm analysis.\nASSISTANT: Great! Can you tell me what algorithm analysis is?\nUSER: Algorithm analysis is when we look at how fast algorithms run. It's important because we need to know which algorithms are best to use for our programs.\nASSISTANT: That's a good start. Can you explain time complexity?\nUSER: Time complexity tells us how fast or slow an algorithm runs when we increase the input. We use Big O notation to show this.",
+                mindmap: data,
+                score: 85,
+                duration: 8.5
+              });
+              setLoading(false);
+            })
+            .catch(err => {
+              console.error('Error loading sample data:', err);
+              setError('Error loading assessment results');
+              setLoading(false);
+            });
+        }, 1500);
+      } catch (err) {
+        setError('Error loading assessment results');
+        console.error(err);
+        setLoading(false);
+      }
+    }
+
+    fetchResults();
+
+    // Extract concepts from the mind map for annotations
+    if (result?.mindmap) {
+      const extractConcepts = (node: any): string[] => {
+        let concepts = [node.name];
+        if (node.subtopics) {
+          node.subtopics.forEach((subtopic: any) => {
+            concepts = [...concepts, ...extractConcepts(subtopic)];
+          });
+        }
+        return concepts;
+      };
+      
+      if (result.mindmap.topic) {
+        setConcepts(extractConcepts(result.mindmap.topic));
+      }
+    }
+  }, [params.student_id, params.assessment_id, params.teacher_id]);
+
+  const handleAddAnnotation = () => {
+    if (newAnnotation.trim() !== "") {
+      const annotation = {
+        id: Date.now(),
+        text: newAnnotation,
+        timestamp: new Date().toISOString(),
+        concept: selectedConcept || "General"
+      };
+      
+      setAnnotations([...annotations, annotation]);
+      setNewAnnotation("");
+      setSelectedConcept("");
+      setShowAnnotationForm(false);
+    }
+  };
+
+  const handleDownloadResults = () => {
+    alert("This feature will be integrated with the backend API to download assessment results");
+  };
+
+  return (
+    <div className="relative min-h-screen">
+      {/* Background animation */}
+      <FloatingIcons />
+
+      {/* Custom scrollbar styles */}
+      <style jsx global>{customScrollbarStyles}</style>
+      
+      {/* Main container */}
+      <div className="container mx-auto max-w-6xl px-4 py-8 relative z-10">
+        {/* Header with navigation */}
+        <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-semibold text-gray-900 flex items-center">
+              <div className="w-10 h-10 rounded-full bg-gray-200 mr-3 overflow-hidden flex-shrink-0">
+                <img 
+                  src={mockStudentData.avatarUrl} 
+                  alt={mockStudentData.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              {mockStudentData.name}'s Results
+            </h1>
+            <p className="text-gray-500 ml-[52px]">
+              Assessment: {params.assessment_id} • {new Date().toLocaleDateString()}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleDownloadResults}
+              className="inline-flex items-center px-5 py-2.5 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 rounded-xl hover:shadow-sm transition-all duration-300"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              <span>Download</span>
+            </button>
+
+            <Link
+              href={`/teacher/${params.teacher_id}/assessment/${params.assessment_id}`}
+              className="inline-flex items-center p-2.5 text-alterview-indigo hover:text-alterview-violet transition-colors rounded-xl hover:bg-gray-50"
+            >
+              <ArrowLeftCircle className="h-5 w-5" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Main content layout - 2 column on desktop, 1 column on mobile */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left column - About student and assessment */}
+          <div className="lg:col-span-1 flex flex-col gap-6">
+            {/* Student card */}
+            <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-apple overflow-hidden">
+              <div className="px-6 py-5 border-b border-gray-100 flex items-center">
+                <FileText className="h-5 w-5 text-alterview-indigo mr-2" />
+                <h2 className="text-lg font-semibold text-gray-800">
+                  Student Information
+                </h2>
+              </div>
+              <div className="p-6">
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Name</p>
+                    <p className="font-medium">{mockStudentData.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Email</p>
+                    <p className="font-medium">{mockStudentData.email}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Student ID</p>
+                    <p className="font-medium">{mockStudentData.studentId}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Program</p>
+                    <p className="font-medium">{mockStudentData.program}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Assessment Stats */}
+            <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-apple overflow-hidden">
+              <div className="px-6 py-5 border-b border-gray-100 flex items-center">
+                <BarChart2 className="h-5 w-5 text-alterview-indigo mr-2" />
+                <h2 className="text-lg font-semibold text-gray-800">
+                  Assessment Stats
+                </h2>
+              </div>
+              <div className="p-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-indigo-50 rounded-xl p-4 text-center">
+                    <p className="text-sm text-indigo-600 mb-1">Score</p>
+                    <p className="text-2xl font-bold text-indigo-700">{result?.score || 0}/100</p>
+                  </div>
+                  <div className="bg-blue-50 rounded-xl p-4 text-center">
+                    <p className="text-sm text-blue-600 mb-1">Duration</p>
+                    <p className="text-2xl font-bold text-blue-700">{result?.duration || 0} min</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Annotations */}
+            <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-apple overflow-hidden">
+              <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                <div className="flex items-center">
+                  <PenTool className="h-5 w-5 text-alterview-indigo mr-2" />
+                  <h2 className="text-lg font-semibold text-gray-800">
+                    Teacher Notes
+                  </h2>
+                </div>
+                <button 
+                  onClick={() => setShowAnnotationForm(!showAnnotationForm)}
+                  className="text-alterview-indigo hover:text-alterview-violet transition-colors"
+                >
+                  {showAnnotationForm ? 'Cancel' : 'Add Note'}
+                </button>
+              </div>
+              <div className="p-6">
+                {showAnnotationForm && (
+                  <div className="mb-4 p-4 bg-gray-50 rounded-xl">
+                    <div className="mb-3">
+                      <label className="block text-sm text-gray-600 mb-1">Related Concept</label>
+                      <select 
+                        value={selectedConcept}
+                        onChange={(e) => setSelectedConcept(e.target.value)}
+                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-alterview-indigo focus:border-transparent"
+                      >
+                        <option value="">General</option>
+                        {concepts.map((concept, index) => (
+                          <option key={index} value={concept}>{concept}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="mb-3">
+                      <label className="block text-sm text-gray-600 mb-1">Note</label>
+                      <textarea 
+                        value={newAnnotation}
+                        onChange={(e) => setNewAnnotation(e.target.value)}
+                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-alterview-indigo focus:border-transparent"
+                        rows={3}
+                        placeholder="Add your observation or note here..."
+                      />
+                    </div>
+                    <button 
+                      onClick={handleAddAnnotation}
+                      className="px-4 py-2 bg-alterview-gradient text-white rounded-lg hover:shadow-md transition-all duration-300"
+                    >
+                      Save Note
+                    </button>
+                  </div>
+                )}
+                
+                {annotations.length > 0 ? (
+                  <div className="space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar">
+                    {annotations.map(annotation => (
+                      <div key={annotation.id} className="p-3 bg-gray-50 rounded-lg hover:shadow-sm transition-all border border-gray-100">
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="text-xs font-medium text-alterview-indigo px-2 py-0.5 bg-indigo-50 rounded-full">
+                            {annotation.concept}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {new Date(annotation.timestamp).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-700">{annotation.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-6 text-center">
+                    <HelpCircle className="h-8 w-8 text-gray-300 mb-2" />
+                    <p className="text-gray-500">No notes yet</p>
+                    <p className="text-sm text-gray-400">Add notes to track observations</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right column - Mind Map and Transcript */}
+          <div className="lg:col-span-2 flex flex-col gap-6">
+            {/* Teacher Mind Map with teacher-specific features */}
+            <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-apple overflow-hidden">
+              <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                <div className="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-alterview-indigo mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  <h2 className="text-lg font-semibold text-gray-800">
+                    Knowledge Mind Map <span className="text-xs text-alterview-indigo font-normal ml-1">Teacher View</span>
+                  </h2>
+                </div>
+                <div className="flex space-x-2">
+                  <button 
+                    className="p-2 text-gray-500 hover:text-alterview-indigo transition-colors rounded-lg hover:bg-gray-50"
+                  >
+                    <Share2 className="h-4 w-4" />
+                  </button>
+                  <Link
+                    href={`/teacher/${params.teacher_id}/assessment/${params.assessment_id}/edit-mindmap`}
+                    className="p-2 text-gray-500 hover:text-alterview-indigo transition-colors rounded-lg hover:bg-gray-50"
+                  >
+                    <Edit3 className="h-4 w-4" />
+                  </Link>
+                </div>
+              </div>
+              
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+                  <p className="text-slate-600 text-xl">Loading mind map...</p>
+                </div>
+              ) : error ? (
+                <div className="bg-red-50 border-l-4 border-red-500 p-4 m-6 rounded-md">
+                  <p className="text-red-700 font-medium">{error}</p>
+                </div>
+              ) : (
+                <div className="p-4">
+                  <div className="h-[60vh] w-full">
+                    <MindMap data={result?.mindmap} className="rounded-xl" />
+                  </div>
+                </div>
+              )}
+              
+              <div className="px-6 py-3 border-t border-gray-100 bg-gray-50 flex justify-between items-center">
+                <div className="text-xs text-gray-500">Teacher-view includes all assessment criteria</div>
+                <div className="flex space-x-3">
+                  <div className="flex items-center">
+                    <div className="h-2 w-2 rounded-full bg-red-500 mr-1"></div>
+                    <span className="text-xs">Low</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="h-2 w-2 rounded-full bg-yellow-500 mr-1"></div>
+                    <span className="text-xs">Medium</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="h-2 w-2 rounded-full bg-green-500 mr-1"></div>
+                    <span className="text-xs">High</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Transcript */}
+            <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-apple overflow-hidden">
+              <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                <div className="flex items-center">
+                  <MessageSquare className="h-5 w-5 text-alterview-indigo mr-2" />
+                  <h2 className="text-lg font-semibold text-gray-800">
+                    Interview Transcript
+                  </h2>
+                </div>
+                <div className="flex space-x-2">
+                  <button 
+                    className="p-2 text-gray-500 hover:text-alterview-indigo transition-colors rounded-lg hover:bg-gray-50"
+                  >
+                    <Mic className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+              
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-6">
+                  <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+                  <p className="text-slate-600">Loading transcript...</p>
+                </div>
+              ) : error ? (
+                <div className="bg-red-50 border-l-4 border-red-500 p-4 m-6 rounded-md">
+                  <p className="text-red-700 font-medium">{error}</p>
+                </div>
+              ) : (
+                <div className="p-6">
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-left max-h-[400px] overflow-y-auto custom-scrollbar">
+                    {parsedTranscript.length > 0 ? (
+                      <div className="space-y-4">
+                        {parsedTranscript.map((line, index) => (
+                          <div key={index} className={`flex ${line.speaker === 'USER' ? 'justify-end' : 'justify-start'}`}>
+                            <div className={`max-w-[80%] rounded-lg p-3 ${
+                              line.speaker === 'USER' 
+                                ? 'bg-indigo-100 text-indigo-800' 
+                                : 'bg-gray-200 text-gray-800'
+                            }`}>
+                              <p className="text-xs font-semibold mb-1">{line.speaker}</p>
+                              <p>{line.text}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center h-[200px]">
+                        <p className="text-gray-500">No transcript available</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+} 

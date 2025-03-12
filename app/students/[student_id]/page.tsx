@@ -3,40 +3,31 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  ArrowLeftCircle,
-  BookOpen,
-  ChevronRight,
-  LogOut,
-  History,
-  ExternalLink,
-  FileText,
-  Calendar,
-} from "lucide-react";
+import { ArrowLeftCircle, BookOpen, ChevronRight, LogOut, History, ExternalLink, FileText, Calendar, ChevronDown } from "lucide-react";
 import FloatingIcons from "@/components/app/FloatingIcons";
 
 // Mock data for assessments
 const mockAssessments = [
-  {
-    id: "1",
+  { 
+    id: "1", 
     title: "Data Structures and Algorithms",
     course: "CSE 310",
     dueDate: "March 15, 2023",
-    status: "Not Started",
+    status: "Not Started"
   },
-  {
-    id: "2",
+  { 
+    id: "2", 
     title: "Mathematics Assessment",
     course: "MATH 241",
     dueDate: "March 18, 2023",
-    status: "Not Started",
+    status: "Not Started"
   },
-  {
-    id: "3",
+  { 
+    id: "3", 
     title: "Science Evaluation",
     course: "SCI 201",
     dueDate: "March 20, 2023",
-    status: "Not Started",
+    status: "Not Started"
   },
 ];
 
@@ -57,73 +48,68 @@ export default function StudentDashboard({
   params: { student_id: string };
 }) {
   const [loaded, setLoaded] = useState(false);
-  const [assessmentResults, setAssessmentResults] = useState<
-    AssessmentResult[]
-  >([]);
+  const [assessmentResults, setAssessmentResults] = useState<AssessmentResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showAllResults, setShowAllResults] = useState(false);
 
   useEffect(() => {
     setLoaded(true);
-
+    
     // Fetch assessment results
     const fetchAssessmentResults = async () => {
       try {
-        const response = await fetch(
-          `https://alterview-api.vercel.app/api/v1/assessment-results/student/${params.student_id}`
-        );
-
+        const response = await fetch(`https://alterview-api.vercel.app/api/v1/assessment-results/student/${params.student_id}`);
+        
         if (!response.ok) {
-          throw new Error(
-            `Failed to fetch assessment results: ${response.status}`
-          );
+          throw new Error(`Failed to fetch assessment results: ${response.status}`);
         }
-
+        
         const data = await response.json();
         // Sort assessment results from latest to oldest based on created_at date
-        const sortedData = [...data].sort(
-          (a, b) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        const sortedData = [...data].sort((a, b) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
         setAssessmentResults(sortedData);
       } catch (err) {
         console.error("Error fetching assessment results:", err);
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Failed to fetch assessment results"
-        );
+        setError(err instanceof Error ? err.message : "Failed to fetch assessment results");
       } finally {
         setIsLoading(false);
       }
     };
-
+    
     fetchAssessmentResults();
   }, [params.student_id]);
 
   // Format date to a more readable format
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
+
+  // Get visible results - either all or just the first 5
+  const visibleResults = showAllResults 
+    ? assessmentResults 
+    : assessmentResults.slice(0, 5);
 
   return (
     <div className="relative min-h-[calc(100vh-10rem)] px-4 py-8 overflow-hidden">
       {/* Background animation */}
       <FloatingIcons />
-
+      
       {/* Main container */}
       <div className="container mx-auto max-w-4xl relative z-10">
         {/* Header section with welcome message */}
-        <div
+        <div 
           className={`transition-all duration-700 ease-out ${
-            loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}
         >
           <div className="mb-8">
@@ -131,10 +117,7 @@ export default function StudentDashboard({
               Welcome, Student
             </h1>
             <div className="flex items-center space-x-4">
-              <p
-                className="text-gray-500 text-lg animate-fadeIn"
-                style={{ animationDelay: "100ms" }}
-              >
+              <p className="text-gray-500 text-lg animate-fadeIn" style={{ animationDelay: '100ms' }}>
                 ID: {params.student_id}
               </p>
               <Link
@@ -149,23 +132,19 @@ export default function StudentDashboard({
         </div>
 
         {/* Assessments section */}
-        <div
+        <div 
           className={`bg-white/90 backdrop-blur-md rounded-2xl mb-6 shadow-apple animate-scaleIn overflow-hidden transition-all duration-700 ease-out ${
-            loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}
-          style={{ animationDelay: "100ms" }}
+          style={{ animationDelay: '100ms' }}
         >
           {/* Section header */}
           <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
             <div className="flex items-center">
               <BookOpen className="h-5 w-5 text-alterview-indigo mr-2" />
-              <h2 className="text-xl font-semibold text-gray-800">
-                Your Assessments
-              </h2>
+              <h2 className="text-xl font-semibold text-gray-800">Your Assessments</h2>
             </div>
-            <span className="text-sm text-gray-500">
-              {mockAssessments.length} total
-            </span>
+            <span className="text-sm text-gray-500">{mockAssessments.length} total</span>
           </div>
 
           {/* Assessment list */}
@@ -179,9 +158,7 @@ export default function StudentDashboard({
                 >
                   <div className="px-8 py-5 flex justify-between items-center">
                     <div className="flex-1">
-                      <h3 className="font-medium text-gray-900 mb-1">
-                        {assessment.title}
-                      </h3>
+                      <h3 className="font-medium text-gray-900 mb-1">{assessment.title}</h3>
                       <div className="flex items-center text-sm text-gray-500 space-x-3">
                         <span>{assessment.course}</span>
                         <span className="h-1 w-1 rounded-full bg-gray-300"></span>
@@ -207,31 +184,23 @@ export default function StudentDashboard({
             </div>
           )}
         </div>
-
+        
         {/* Past Attempts section */}
-        <div
+        <div 
           className={`bg-white/90 backdrop-blur-md rounded-2xl mb-6 shadow-apple animate-scaleIn overflow-hidden transition-all duration-700 ease-out ${
-            loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}
-          style={{ animationDelay: "200ms" }}
+          style={{ animationDelay: '200ms' }}
         >
           {/* Section header */}
           <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
             <div className="flex items-center">
               <History className="h-5 w-5 text-alterview-violet mr-2" />
-              <h2 className="text-xl font-semibold text-gray-800">
-                Past Attempts
-              </h2>
+              <h2 className="text-xl font-semibold text-gray-800">Past Attempts</h2>
             </div>
-            {assessmentResults.length > 5 && (
-              <Link
-                href={`/student/${params.student_id}/history`}
-                className="text-sm text-alterview-indigo hover:text-alterview-violet transition-colors flex items-center"
-              >
-                <span>View all</span>
-                <ExternalLink className="h-3.5 w-3.5 ml-1" />
-              </Link>
-            )}
+            <span className="text-sm text-gray-500">
+              {assessmentResults.length > 0 && `Showing ${visibleResults.length} of ${assessmentResults.length}`}
+            </span>
           </div>
 
           {/* Loading state */}
@@ -252,12 +221,10 @@ export default function StudentDashboard({
             <div className="px-8 py-10 text-center">
               <div className="max-w-md mx-auto">
                 <div className="bg-red-50 rounded-xl p-6 mb-4">
-                  <h3 className="text-lg font-medium text-red-800 mb-2">
-                    Error loading results
-                  </h3>
+                  <h3 className="text-lg font-medium text-red-800 mb-2">Error loading results</h3>
                   <p className="text-red-600 text-sm">{error}</p>
                 </div>
-                <button
+                <button 
                   className="mt-2 inline-flex items-center px-4 py-2 text-sm font-medium text-alterview-indigo border border-alterview-indigo/30 rounded-xl hover:bg-alterview-indigo/5 transition-colors"
                   onClick={() => window.location.reload()}
                 >
@@ -268,89 +235,82 @@ export default function StudentDashboard({
             </div>
           )}
 
-          {/* Assessment results list - limited to 5 */}
+          {/* Assessment results list */}
           {!isLoading && !error && assessmentResults.length > 0 ? (
-            <div className="divide-y divide-gray-100">
-              {assessmentResults.slice(0, 5).map((result, index) => (
-                <div
-                  key={result.id}
-                  className="hover:bg-gray-50/80 transition-colors"
-                  style={{ animationDelay: `${150 + index * 50}ms` }}
-                >
-                  <div className="px-8 py-5 flex justify-between items-center">
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900 mb-1">
-                        Assessment #{result.assessment_id}
-                      </h3>
-                      <div className="flex items-center text-sm text-gray-500 space-x-3">
-                        <div className="flex items-center">
-                          <Calendar className="h-3.5 w-3.5 mr-1 text-gray-400" />
-                          <span>{formatDate(result.created_at)}</span>
+            <>
+              <div className="divide-y divide-gray-100">
+                {visibleResults.map((result, index) => (
+                  <div
+                    key={result.id}
+                    className="hover:bg-gray-50/80 transition-colors"
+                    style={{ animationDelay: `${150 + index * 50}ms` }}
+                  >
+                    <div className="px-8 py-5 flex justify-between items-center">
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900 mb-1">Assessment #{result.assessment_id}</h3>
+                        <div className="flex items-center text-sm text-gray-500 space-x-3">
+                          <div className="flex items-center">
+                            <Calendar className="h-3.5 w-3.5 mr-1 text-gray-400" />
+                            <span>{formatDate(result.created_at)}</span>
+                          </div>
                         </div>
                       </div>
+                      <Link
+                        href={`/student/${params.student_id}/results/${result.id}`}
+                        className="flex items-center px-4 py-2 text-alterview-indigo border border-alterview-indigo/30 rounded-xl hover:bg-alterview-indigo/5 transition-colors group"
+                      >
+                        <FileText className="h-4 w-4 mr-1" />
+                        <span>View</span>
+                        <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
+                      </Link>
                     </div>
-                    <Link
-                      href={`/student/${params.student_id}/results/${result.id}`}
-                      className="flex items-center px-4 py-2 text-alterview-indigo border border-alterview-indigo/30 rounded-xl hover:bg-alterview-indigo/5 transition-colors group"
-                    >
-                      <FileText className="h-4 w-4 mr-1" />
-                      <span>View</span>
-                      <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
-                    </Link>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              
+              {/* Show More button - only display if there are more than 5 results */}
               {assessmentResults.length > 5 && (
-                <div className="px-8 py-4 bg-gray-50/80">
-                  <Link
-                    href={`/student/${params.student_id}/history`}
-                    className="flex items-center justify-center w-full text-sm text-alterview-indigo hover:text-alterview-violet transition-colors"
+                <div className="px-8 py-4 border-t border-gray-100 flex justify-center">
+                  <button 
+                    onClick={() => setShowAllResults(!showAllResults)}
+                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-alterview-indigo hover:text-alterview-violet transition-colors"
                   >
-                    <span>
-                      See {assessmentResults.length - 5} more attempt
-                      {assessmentResults.length - 5 !== 1 ? "s" : ""}
-                    </span>
-                    <ChevronRight className="h-4 w-4 ml-1" />
-                  </Link>
+                    {showAllResults ? (
+                      <>
+                        <span>Show Less</span>
+                        <ChevronDown className="h-4 w-4 ml-1 transform rotate-180" />
+                      </>
+                    ) : (
+                      <>
+                        <span>Show More</span>
+                        <ChevronDown className="h-4 w-4 ml-1" />
+                      </>
+                    )}
+                  </button>
                 </div>
               )}
-            </div>
+            </>
           ) : (
-            !isLoading &&
-            !error && (
+            !isLoading && !error && (
               <div className="px-8 py-10 text-center">
                 <div className="max-w-md mx-auto">
                   <div className="bg-gray-50 rounded-xl p-6 mb-4">
                     <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <History className="h-6 w-6 text-gray-400" />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-800 mb-2">
-                      No past attempts yet
-                    </h3>
+                    <h3 className="text-lg font-medium text-gray-800 mb-2">No past attempts yet</h3>
                     <p className="text-gray-500 text-sm">
-                      After you complete an assessment, your attempts will
-                      appear here for review.
+                      After you complete an assessment, your attempts will appear here for review.
                     </p>
                   </div>
-
-                  <Link
-                    href={`/student/${params.student_id}/history`}
-                    className="mt-2 inline-flex items-center px-4 py-2 text-sm font-medium text-alterview-indigo border border-alterview-indigo/30 rounded-xl hover:bg-alterview-indigo/5 transition-colors"
-                  >
-                    <History className="h-4 w-4 mr-2" />
-                    Browse your history
-                  </Link>
                 </div>
               </div>
             )
           )}
         </div>
-
+        
         {/* Back to home link */}
-        <div
-          className="text-center animate-fadeIn"
-          style={{ animationDelay: "300ms" }}
-        >
+        <div className="text-center animate-fadeIn" style={{ animationDelay: '300ms' }}>
           <Link
             href="/"
             className="inline-flex items-center justify-center text-alterview-indigo hover:text-alterview-violet transition-colors apple-hover"
