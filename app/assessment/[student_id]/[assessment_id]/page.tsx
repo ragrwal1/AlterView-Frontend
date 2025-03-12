@@ -57,13 +57,9 @@ export default function AssessmentPage({ params }: { params: { student_id: strin
     <main
       className={`flex min-h-screen flex-col items-center justify-between p-12 ${inter.className}`}
     >
-      {/* Enhanced header with gradient styling */}
+      {/* Enhanced header with styling */}
       <div className="w-full max-w-4xl relative">
-        {/* Apple-style purple and blue inward gradient effect */}
-        <div className="absolute inset-0 rounded-3xl pointer-events-none" style={{ 
-          boxShadow: `inset 0 0 80px 30px rgba(79, 70, 229, 0.15), inset 0 0 40px 20px rgba(59, 130, 246, 0.15)`,
-          borderRadius: 'inherit'
-        }}></div>
+        {/* Removed the Apple-style purple and blue inward gradient effect div */}
         
         <div className="backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden border border-white/20 p-8 mb-8">
           <div className="text-center">
@@ -102,7 +98,6 @@ export default function AssessmentPage({ params }: { params: { student_id: strin
                       </svg>
                     </div>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">Student Login</h3>
                   <div className="flex flex-col space-y-2">
                     <div className="flex items-center space-x-2">
                       <span className="text-gray-500">ID:</span>

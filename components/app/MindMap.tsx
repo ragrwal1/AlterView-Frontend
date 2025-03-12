@@ -39,7 +39,7 @@ const MindMap: React.FC<MindMapProps> = ({ data, className = '' }) => {
   const mindmapRef = useRef<any>(null);
 
   useEffect(() => {
-    if (!containerRef.current || !data) return;
+    if (!containerRef.current || !data || typeof data !== 'object') return;
 
     // Clear any existing SVG
     d3.select(containerRef.current).select('svg').remove();
@@ -80,7 +80,7 @@ const MindMap: React.FC<MindMapProps> = ({ data, className = '' }) => {
     const rootNode: TreeNode = {
       x: 0,
       y: 0,
-      data: data.topic,
+      data: data.topic || { name: "No Data", description: "No data available" },
       depth: 0
     };
 
@@ -113,7 +113,9 @@ const MindMap: React.FC<MindMapProps> = ({ data, className = '' }) => {
     }
 
     // Create the tree structure
-    rootNode.children = createChildren(rootNode, data.topic.subtopics, 1);
+    rootNode.children = data.topic && data.topic.subtopics 
+      ? createChildren(rootNode, data.topic.subtopics, 1)
+      : [];
 
     // Position all nodes with improved spacing based on subtree size
     function positionNodes(node: TreeNode, x: number, y: number): void {
