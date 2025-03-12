@@ -309,35 +309,48 @@ export default function StudentDashboard({
           {!isLoading && !error && assessmentResults.length > 0 ? (
             <>
               <div className="divide-y divide-gray-100">
-                {visibleResults.map((result, index) => (
-                  <div
-                    key={result.id}
-                    className="hover:bg-gray-50/80 transition-colors"
-                    style={{ animationDelay: `${150 + index * 50}ms` }}
-                  >
-                    <div className="px-8 py-5 flex justify-between items-center">
-                      <div className="flex-1">
-                        <h3 className="font-medium text-gray-900 mb-1">
-                          Assessment #{result.assessment_id}
-                        </h3>
-                        <div className="flex items-center text-sm text-gray-500 space-x-3">
-                          <div className="flex items-center">
-                            <Calendar className="h-3.5 w-3.5 mr-1 text-gray-400" />
-                            <span>{formatDate(result.created_at)}</span>
+                {visibleResults.map((result, index) => {
+                  // Find matching assessment from our assessments array
+                  const matchingAssessment = assessments.find(
+                    (a) => a.id === result.assessment_id.toString()
+                  );
+
+                  return (
+                    <div
+                      key={result.id}
+                      className="hover:bg-gray-50/80 transition-colors"
+                      style={{ animationDelay: `${150 + index * 50}ms` }}
+                    >
+                      <div className="px-8 py-5 flex justify-between items-center">
+                        <div className="flex-1">
+                          <h3 className="font-medium text-gray-900 mb-1">
+                            {matchingAssessment?.title || `Assessment #${result.assessment_id}`}
+                          </h3>
+                          <div className="flex items-center text-sm text-gray-500 space-x-3">
+                            <div className="flex items-center">
+                              <Calendar className="h-3.5 w-3.5 mr-1 text-gray-400" />
+                              <span>{formatDate(result.created_at)}</span>
+                            </div>
+                            {matchingAssessment && (
+                              <>
+                                <span className="h-1 w-1 rounded-full bg-gray-300"></span>
+                                <span>{matchingAssessment.course}</span>
+                              </>
+                            )}
                           </div>
                         </div>
+                        <Link
+                          href={`/student/${params.student_id}/results/${result.id}`}
+                          className="flex items-center px-4 py-2 text-alterview-indigo border border-alterview-indigo/30 rounded-xl hover:bg-alterview-indigo/5 transition-colors group"
+                        >
+                          <FileText className="h-4 w-4 mr-1" />
+                          <span>View</span>
+                          <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
+                        </Link>
                       </div>
-                      <Link
-                        href={`/student/${params.student_id}/results/${result.id}`}
-                        className="flex items-center px-4 py-2 text-alterview-indigo border border-alterview-indigo/30 rounded-xl hover:bg-alterview-indigo/5 transition-colors group"
-                      >
-                        <FileText className="h-4 w-4 mr-1" />
-                        <span>View</span>
-                        <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
-                      </Link>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Show More button - only display if there are more than 5 results */}
