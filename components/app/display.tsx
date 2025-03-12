@@ -64,16 +64,32 @@ interface TranscriptSegment {
   text: string;
 }
 
+// Interface for loading steps
+interface LoadingStep {
+  id: number;
+  label: string;
+  completed: boolean;
+}
+
 function Display() {
   // Store transcript segments with role information
   const [transcriptSegments, setTranscriptSegments] = useState<TranscriptSegment[]>([]);
   const [activePartial, setActivePartial] = useState<string>("");
   const [activeRole, setActiveRole] = useState<MessageRoleEnum | null>(null);
   const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
+  const [showLoadingPopup, setShowLoadingPopup] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerDimensions, setContainerDimensions] = useState<{height: number, width: number}>({height: 0, width: 0});
   const activePartialRef = useRef<string>("");
+  
+  // Define the loading steps
+  const [loadingSteps, setLoadingSteps] = useState<LoadingStep[]>([
+    { id: 1, label: "Analyzing conversation", completed: false },
+    { id: 2, label: "Processing feedback", completed: false },
+    { id: 3, label: "Generating insights", completed: false },
+    { id: 4, label: "Preparing results", completed: false }
+  ]);
 
   // Update container dimensions only when window size changes
   useLayoutEffect(() => {
@@ -101,6 +117,31 @@ function Display() {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [transcriptSegments, activePartial]);
+
+  // Effect for completing loading steps one by one
+  useEffect(() => {
+    if (!showLoadingPopup) return;
+
+    // Function to complete steps sequentially
+    const completeSteps = async () => {
+      // Update loading steps one by one with delays
+      for (let i = 0; i < loadingSteps.length - 1; i++) {
+        // Wait for 4-5 seconds
+        await new Promise(resolve => setTimeout(resolve, 4000 + Math.random() * 1000));
+        
+        // Update the completed status
+        setLoadingSteps(prevSteps => 
+          prevSteps.map(step => 
+            step.id === i + 1 ? { ...step, completed: true } : step
+          )
+        );
+      }
+      
+      // Note: We don't complete the last step - it keeps animating until redirect
+    };
+
+    completeSteps();
+  }, [showLoadingPopup, loadingSteps.length]);
 
   // Helper function to intelligently join text segments
   const joinTextSegments = (existingText: string, newText: string): string => {
@@ -228,11 +269,18 @@ function Display() {
       activePartialRef.current = "";
     };
 
+    const handleCallEnd = () => {
+      // Show the loading popup when call ends
+      setShowLoadingPopup(true);
+      // Reset conversation data
+      reset();
+    };
+
     vapi.on("message", onMessageUpdate);
-    vapi.on("call-end", reset);
+    vapi.on("call-end", handleCallEnd);
     return () => {
       vapi.off("message", onMessageUpdate);
-      vapi.off("call-end", reset);
+      vapi.off("call-end", handleCallEnd);
     };
   }, []);
 
@@ -288,28 +336,6 @@ function Display() {
                     msOverflowStyle: 'none' // IE and Edge
                   }}
                 >
-                  <style jsx global>{`
-                    /* Hide scrollbar for Chrome, Safari and Opera */
-                    .custom-scrollbar::-webkit-scrollbar {
-                      width: 6px;
-                    }
-                    
-                    /* Track */
-                    .custom-scrollbar::-webkit-scrollbar-track {
-                      background: transparent;
-                    }
-                    
-                    /* Handle */
-                    .custom-scrollbar::-webkit-scrollbar-thumb {
-                      background: rgba(79, 70, 229, 0.5);
-                      border-radius: 3px;
-                    }
-                    
-                    /* Handle on hover */
-                    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                      background: rgba(79, 70, 229, 0.7);
-                    }
-                  `}</style>
                   <div className="custom-scrollbar" style={{ height: '100%', overflowY: 'auto' }}>
                     {transcriptSegments.map((segment, index) => (
                       <div 
@@ -352,6 +378,125 @@ function Display() {
           </div>
         </div>
       </div>
+
+      {/* Loading Popup */}
+      {showLoadingPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300 ease-in-out">
+          <div className="bg-white rounded-2xl p-8 shadow-2xl max-w-lg w-full mx-4 transform transition-transform duration-300 ease-out scale-100">
+            <div className="text-center mb-6">
+              <div className="w-20 h-20 mx-auto mb-4 relative">
+                <div className="absolute inset-0 border-t-4 border-indigo-600 border-solid rounded-full animate-spin"></div>
+                <div className="absolute inset-3 border-t-4 border-indigo-400 border-solid rounded-full animate-spin animation-delay-150"></div>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">Processing Results</h2>
+              <p className="text-gray-600">Please wait while we analyze your conversation</p>
+            </div>
+            
+            <div className="space-y-6">
+              {loadingSteps.map((step) => (
+                <div key={step.id} className="flex items-center">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-4 transition-colors duration-500 ease-out
+                    ${step.completed 
+                      ? 'bg-green-500 text-white' 
+                      : step.id === loadingSteps.findIndex(s => !s.completed) + 1
+                        ? 'bg-indigo-100 text-indigo-600 animate-pulse' 
+                        : 'bg-gray-200 text-gray-400'}`}
+                  >
+                    {step.completed ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    ) : (
+                      <span className="text-sm font-medium">{step.id}</span>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex justify-between">
+                      <span className={`font-medium transition-colors duration-300 ${
+                        step.completed 
+                          ? 'text-green-600' 
+                          : step.id === loadingSteps.findIndex(s => !s.completed) + 1
+                            ? 'text-indigo-600' 
+                            : 'text-gray-500'
+                      }`}>
+                        {step.label}
+                      </span>
+                      {step.completed ? (
+                        <span className="text-green-500 text-sm">Completed</span>
+                      ) : step.id === loadingSteps.findIndex(s => !s.completed) + 1 ? (
+                        <span className="text-indigo-500 text-sm flex items-center">
+                          <span className="mr-1">Processing</span>
+                          <span className="flex space-x-1">
+                            <span className="w-1 h-1 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                            <span className="w-1 h-1 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                            <span className="w-1 h-1 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 text-sm">Pending</span>
+                      )}
+                    </div>
+                    <div className="mt-2 w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full transition-all duration-1000 ease-out ${
+                          step.completed 
+                            ? 'bg-green-500 w-full' 
+                            : step.id === loadingSteps.findIndex(s => !s.completed) + 1
+                              ? 'bg-indigo-500 animate-progress' 
+                              : 'bg-gray-300 w-0'
+                        }`}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Consolidated global styles */}
+      <style jsx global>{`
+        /* Scrollbar styles */
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(79, 70, 229, 0.5);
+          border-radius: 3px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(79, 70, 229, 0.7);
+        }
+
+        /* Animation keyframes */
+        @keyframes progress {
+          0% { width: 0%; }
+          20% { width: 20%; }
+          40% { width: 40%; }
+          60% { width: 65%; }
+          80% { width: 85%; }
+          100% { width: 95%; }
+        }
+        
+        .animate-progress {
+          animation: progress 4s ease-in-out infinite;
+        }
+        
+        .animation-delay-150 {
+          animation-delay: 150ms;
+        }
+        
+        .animation-delay-300 {
+          animation-delay: 300ms;
+        }
+      `}</style>
     </div>
   );
 }
