@@ -7,8 +7,8 @@ import Link from "next/link";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Alterview - AI-Powered Student Interviews",
-  description: "Revolutionizing student interviews using AI",
+  title: "Alterview - AI-Powered Student Assessments",
+  description: "Revolutionizing student assessments using AI",
 };
 
 export default function RootLayout({
@@ -37,18 +37,22 @@ export default function RootLayout({
                 </span>
               </Link>
               <nav className="hidden md:flex space-x-6">
-                <Link href="/student-login" className="text-gray-700 hover:text-alterview-indigo transition-colors">
+                <Link
+                  href="/student-login"
+                  className="text-gray-700 hover:text-alterview-indigo transition-colors"
+                >
                   For Students
                 </Link>
-                <Link href="/teacher-login" className="text-gray-700 hover:text-alterview-indigo transition-colors">
+                <Link
+                  href="/teacher-login"
+                  className="text-gray-700 hover:text-alterview-indigo transition-colors"
+                >
                   For Teachers
                 </Link>
               </nav>
             </div>
           </header>
-          <main className="flex-grow">
-            {children}
-          </main>
+          <main className="flex-grow">{children}</main>
           <footer className="bg-white py-6 border-t border-gray-200">
             <div className="container mx-auto px-4 text-center text-gray-500 text-sm">
               © {new Date().getFullYear()} Alterview. All rights reserved.
@@ -58,4 +62,4 @@ export default function RootLayout({
       </body>
     </html>
   );
-} 
+}
