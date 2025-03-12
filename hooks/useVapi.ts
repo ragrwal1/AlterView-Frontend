@@ -158,8 +158,6 @@ export function useVapi(assessmentId?: string) {
       
       // Create the mindmap as a JSON string
       const mindmapJson = JSON.stringify({
-        nodes: [],
-        edges: []
       });
       
       // Prepare the payload for the API request
@@ -168,7 +166,7 @@ export function useVapi(assessmentId?: string) {
         teacher_id: 1, // Already an integer
         assessment_id: assessmentIdInt,
         transcript: finalTranscript,
-        mindmap: mindmapJson
+        mindmap: "{}"
       };
       
       console.log('Submitting assessment results with payload:', payload);
