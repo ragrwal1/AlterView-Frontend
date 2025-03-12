@@ -3,6 +3,7 @@
 import { Inter } from "next/font/google";
 import { Assistant } from "@/components/app/assistant";
 import { useEffect, useState } from "react";
+import { fetchAssessmentDetails } from "@/services/assessmentService";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,20 +29,9 @@ export default function AssessmentPage({ params }: { params: { student_id: strin
     
     async function fetchAssessment() {
       try {
-        const response = await fetch('https://alterview-api.vercel.app/api/v1/assessments');
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch assessment data');
-        }
-        
-        const assessments: Assessment[] = await response.json();
-        const foundAssessment = assessments.find(a => a.id.toString() === params.assessment_id);
-        
-        if (foundAssessment) {
-          setAssessment(foundAssessment);
-        } else {
-          setError(`Assessment with ID ${params.assessment_id} not found`);
-        }
+        // Use our service function to fetch the assessment
+        const assessmentData = await fetchAssessmentDetails(params.assessment_id);
+        setAssessment(assessmentData);
       } catch (err) {
         setError('Error loading assessment data');
         console.error(err);

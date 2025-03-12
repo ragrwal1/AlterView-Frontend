@@ -720,8 +720,12 @@ export default function EditMindMap({
         setIsLoading(true);
         setErrorMessage(null);
         const data = await fetchAssessmentMindMap(params.assessment_id);
+        
+        if (!data || !data.topic) {
+          throw new Error("Invalid mind map data structure");
+        }
+        
         setMindMapData(data);
-        // Reset navigation when data changes
         setCurrentPath([]);
         setCurrentTopicIndex(0);
         setBreadcrumbs([]);

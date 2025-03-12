@@ -18,31 +18,16 @@ import {
 import FloatingIcons from "@/components/app/FloatingIcons";
 import { getStudentName } from "@/services/supabaseService";
 import StudentSettings from "@/components/app/StudentSettings";
+import { fetchStudentAssessments } from "@/services/assessmentService";
 
-// Mock data for assessments
-const mockAssessments = [
-  {
-    id: "1",
-    title: "Data Structures and Algorithms",
-    course: "CSE 310",
-    dueDate: "March 15, 2023",
-    status: "Not Started",
-  },
-  {
-    id: "2",
-    title: "The Rennissance Quiz",
-    course: "HIST 241",
-    dueDate: "March 18, 2023",
-    status: "Not Started",
-  },
-  {
-    id: "3",
-    title: "Science Evaluation",
-    course: "SCI 201",
-    dueDate: "March 20, 2023",
-    status: "Not Started",
-  },
-];
+// Define student assessment interface
+interface StudentAssessment {
+  id: string;
+  title: string;
+  course: string;
+  dueDate: string;
+  status: string;
+}
 
 // Type definition for assessment results
 interface AssessmentResult {
@@ -61,12 +46,11 @@ export default function StudentDashboard({
   params: { student_id: string };
 }) {
   const [loaded, setLoaded] = useState(false);
-  const [assessmentResults, setAssessmentResults] = useState<
-    AssessmentResult[]
-  >([]);
+  const [studentName, setStudentName] = useState("Student");
+  const [assessments, setAssessments] = useState<StudentAssessment[]>([]);
+  const [assessmentResults, setAssessmentResults] = useState<AssessmentResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [studentName, setStudentName] = useState<string | null>(null);
   const [showAllResults, setShowAllResults] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -80,6 +64,16 @@ export default function StudentDashboard({
         setStudentName(name);
       } catch (err) {
         console.error("Error fetching student name:", err);
+      }
+    };
+
+    // Fetch assignments
+    const loadAssignments = async () => {
+      try {
+        const data = await fetchStudentAssessments(params.student_id);
+        setAssessments(data);
+      } catch (err) {
+        console.error("Error fetching student assessments:", err);
       }
     };
 
@@ -116,6 +110,7 @@ export default function StudentDashboard({
     };
 
     fetchStudentName();
+    loadAssignments();
     fetchAssessmentResults();
   }, [params.student_id]);
 
@@ -202,14 +197,14 @@ export default function StudentDashboard({
               </h2>
             </div>
             <span className="text-sm text-gray-500">
-              {mockAssessments.length} total
+              {assessments.length} total
             </span>
           </div>
 
           {/* Assessment list */}
-          {mockAssessments.length > 0 ? (
+          {assessments.length > 0 ? (
             <div className="divide-y divide-gray-100">
-              {mockAssessments.map((assessment, index) => (
+              {assessments.map((assessment, index) => (
                 <div
                   key={assessment.id}
                   className="hover:bg-gray-50/80 transition-colors"

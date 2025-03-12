@@ -3,6 +3,7 @@
 import { Inter } from "next/font/google";
 import { useEffect, useState } from "react";
 import MindMap from "@/components/app/MindMap";
+import { fetchStudentAssessmentResult } from "@/services/assessmentService";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -41,8 +42,9 @@ interface AssessmentResult {
   teacher_id: number;
   student_id: number;
   voice_recording_id: number | null;
-  transcript: string;
+  transcript: string | null;
   mindmap: any | null;
+  insights: any | null;
 }
 
 export default function StudentResultsPage({ params }: { params: { student_id: string, assessment_id: string } }) {
@@ -69,19 +71,19 @@ export default function StudentResultsPage({ params }: { params: { student_id: s
   useEffect(() => {
     async function fetchResults() {
       try {
-        // This is a placeholder API endpoint - replace with your actual endpoint
-        console.log(`https://alterview-api.vercel.app/api/v1/assessment-results/${params.assessment_id}`);
-        const response = await fetch(`https://alterview-api.vercel.app/api/v1/assessment-results/${params.assessment_id}`);
+        setLoading(true);
+        setError(null);
         
-        if (!response.ok) {
-          throw new Error('Failed to fetch assessment results');
-        }
+        // Use our service function to fetch the student's assessment result
+        const resultData = await fetchStudentAssessmentResult(
+          params.student_id,
+          params.assessment_id
+        );
         
-        const resultData: AssessmentResult = await response.json();
         setResult(resultData);
       } catch (err) {
-        setError('Error loading assessment results');
-        console.error(err);
+        console.error("Error loading assessment results:", err);
+        setError('Failed to load assessment results. Please try again.');
       } finally {
         setLoading(false);
       }

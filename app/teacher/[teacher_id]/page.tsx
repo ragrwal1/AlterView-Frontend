@@ -5,8 +5,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeftCircle, LogOut, BookOpen, ChevronRight, Plus, Users } from "lucide-react";
 import FloatingIcons from "@/components/app/FloatingIcons";
+import { fetchTeacherAssessments } from "@/services/assessmentService";
 
-// Mock data for assessments
+// We will replace this with real data from the API
+// Keeping it as a fallback in case the API fails
 const mockAssessments = [
   {
     id: "assessment1",
@@ -37,10 +39,29 @@ export default function TeacherDashboard({
   params: { teacher_id: string };
 }) {
   const [loaded, setLoaded] = useState(false);
+  const [assessments, setAssessments] = useState(mockAssessments);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoaded(true);
-  }, []);
+    
+    const loadAssessments = async () => {
+      try {
+        const data = await fetchTeacherAssessments(params.teacher_id);
+        setAssessments(data);
+        setError(null);
+      } catch (err) {
+        console.error("Error loading assessments:", err);
+        setError("Failed to load assessments. Using sample data instead.");
+        // Keep using mockAssessments as fallback
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadAssessments();
+  }, [params.teacher_id]);
 
   return (
     <div className="relative min-h-[calc(100vh-10rem)] px-4 py-8 overflow-hidden">
@@ -63,6 +84,11 @@ export default function TeacherDashboard({
               <p className="text-gray-500 text-lg animate-fadeIn" style={{ animationDelay: '100ms' }}>
                 ID: {params.teacher_id}
               </p>
+              {error && (
+                <p className="text-amber-600 text-sm mt-2 animate-fadeIn">
+                  {error}
+                </p>
+              )}
             </div>
             
             <div className="flex items-center gap-3">
@@ -99,49 +125,59 @@ export default function TeacherDashboard({
               <BookOpen className="h-5 w-5 text-alterview-indigo mr-2" />
               <h2 className="text-xl font-semibold text-gray-800">Your Assessments</h2>
             </div>
-            <span className="text-sm text-gray-500">{mockAssessments.length} total</span>
+            <span className="text-sm text-gray-500">{assessments.length} total</span>
           </div>
 
-          {/* Assessment list */}
-          {mockAssessments.length > 0 ? (
-            <div className="divide-y divide-gray-100">
-              {mockAssessments.map((assessment, index) => (
-                <div
-                  key={assessment.id}
-                  className="hover:bg-gray-50/80 transition-colors"
-                  style={{ animationDelay: `${150 + index * 50}ms` }}
-                >
-                  <div className="px-8 py-5 flex justify-between items-center">
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900 mb-1">{assessment.title}</h3>
-                      <div className="flex items-center text-sm text-gray-500 space-x-3">
-                        <span>{assessment.course}</span>
-                        <span className="h-1 w-1 rounded-full bg-gray-300"></span>
-                        <div className="flex items-center">
-                          <Users className="h-3.5 w-3.5 mr-1 text-gray-400" />
-                          <span>{assessment.students} students</span>
-                        </div>
-                        <span className="h-1 w-1 rounded-full bg-gray-300"></span>
-                        <span>Updated: {assessment.lastUpdated}</span>
-                      </div>
-                    </div>
-                    <Link
-                      href={`/teacher/${params.teacher_id}/assessment/${assessment.id}`}
-                      className="flex items-center px-5 py-2.5 bg-alterview-gradient text-white rounded-xl hover:shadow-md transition-all duration-300 group"
-                    >
-                      <span>View Details</span>
-                      <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
-                    </Link>
-                  </div>
-                </div>
-              ))}
+          {/* Loading state */}
+          {loading ? (
+            <div className="px-8 py-12 flex justify-center items-center">
+              <div className="h-6 w-6 border-2 border-alterview-indigo border-t-transparent rounded-full animate-spin"></div>
+              <span className="ml-3 text-gray-600">Loading assessments...</span>
             </div>
           ) : (
-            <div className="px-8 py-12 text-center">
-              <p className="text-gray-500">
-                No assessments created yet.
-              </p>
-            </div>
+            <>
+              {/* Assessment list */}
+              {assessments.length > 0 ? (
+                <div className="divide-y divide-gray-100">
+                  {assessments.map((assessment, index) => (
+                    <div
+                      key={assessment.id}
+                      className="hover:bg-gray-50/80 transition-colors"
+                      style={{ animationDelay: `${150 + index * 50}ms` }}
+                    >
+                      <div className="px-8 py-5 flex justify-between items-center">
+                        <div className="flex-1">
+                          <h3 className="font-medium text-gray-900 mb-1">{assessment.title}</h3>
+                          <div className="flex items-center text-sm text-gray-500 space-x-3">
+                            <span>{assessment.course || "No course assigned"}</span>
+                            <span className="h-1 w-1 rounded-full bg-gray-300"></span>
+                            <div className="flex items-center">
+                              <Users className="h-3.5 w-3.5 mr-1 text-gray-400" />
+                              <span>{assessment.students || 0} students</span>
+                            </div>
+                            <span className="h-1 w-1 rounded-full bg-gray-300"></span>
+                            <span>Updated: {assessment.lastUpdated}</span>
+                          </div>
+                        </div>
+                        <Link
+                          href={`/teacher/${params.teacher_id}/assessment/${assessment.id}`}
+                          className="flex items-center px-5 py-2.5 bg-alterview-gradient text-white rounded-xl hover:shadow-md transition-all duration-300 group"
+                        >
+                          <span>View Details</span>
+                          <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="px-8 py-12 text-center">
+                  <p className="text-gray-500">
+                    No assessments created yet.
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
         

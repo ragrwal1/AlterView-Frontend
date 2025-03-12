@@ -2,16 +2,19 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowLeftCircle,
-  History,
+  Clock,
   ChevronRight,
-  FileText,
-  Calendar,
-  Filter,
   Search,
+  Calendar,
+  BookOpen,
+  FileText,
+  BarChart2,
 } from "lucide-react";
 import FloatingIcons from "@/components/app/FloatingIcons";
+import { fetchStudentAssessmentResults } from "@/services/assessmentService";
 
 // Type definition for assessment results (same as in dashboard)
 interface AssessmentResult {
@@ -21,7 +24,9 @@ interface AssessmentResult {
   teacher_id: number;
   student_id: number;
   voice_recording_id: number | null;
-  transcript_id: number | null;
+  transcript: string | null;
+  mindmap: any | null;
+  insights: any | null;
 }
 
 export default function StudentHistory({
@@ -30,12 +35,8 @@ export default function StudentHistory({
   params: { student_id: string };
 }) {
   const [loaded, setLoaded] = useState(false);
-  const [assessmentResults, setAssessmentResults] = useState<
-    AssessmentResult[]
-  >([]);
-  const [filteredResults, setFilteredResults] = useState<AssessmentResult[]>(
-    []
-  );
+  const [assessmentResults, setAssessmentResults] = useState<AssessmentResult[]>([]);
+  const [filteredResults, setFilteredResults] = useState<AssessmentResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -46,24 +47,20 @@ export default function StudentHistory({
     // Fetch assessment results
     const fetchAssessmentResults = async () => {
       try {
-        const response = await fetch(
-          `https://alterview-api.vercel.app/api/v1/assessment-results/student/${params.student_id}`
-        );
-
-        if (!response.ok) {
-          throw new Error(
-            `Failed to fetch assessment results: ${response.status}`
-          );
-        }
-
-        const data = await response.json();
+        setIsLoading(true);
+        
+        // Use our service function to fetch student assessment results
+        const data = await fetchStudentAssessmentResults(params.student_id);
+        
         // Sort assessment results from latest to oldest based on created_at date
         const sortedData = [...data].sort(
           (a, b) =>
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
+        
         setAssessmentResults(sortedData);
         setFilteredResults(sortedData);
+        setError(null);
       } catch (err) {
         console.error("Error fetching assessment results:", err);
         setError(
@@ -167,7 +164,7 @@ export default function StudentHistory({
           {/* Section header */}
           <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
             <div className="flex items-center">
-              <History className="h-5 w-5 text-alterview-violet mr-2" />
+              <BarChart2 className="h-5 w-5 text-alterview-violet mr-2" />
               <h2 className="text-xl font-semibold text-gray-800">
                 All Assessment Attempts
               </h2>
@@ -204,7 +201,7 @@ export default function StudentHistory({
                   className="mt-2 inline-flex items-center px-4 py-2 text-sm font-medium text-alterview-indigo border border-alterview-indigo/30 rounded-xl hover:bg-alterview-indigo/5 transition-colors"
                   onClick={() => window.location.reload()}
                 >
-                  <History className="h-4 w-4 mr-2" />
+                  <BarChart2 className="h-4 w-4 mr-2" />
                   Try again
                 </button>
               </div>
