@@ -47,13 +47,9 @@ export default function AssessmentPage({ params }: { params: { student_id: strin
     <main
       className={`flex min-h-screen flex-col items-center justify-between p-12 ${inter.className}`}
     >
-      {/* Enhanced header with gradient styling */}
+      {/* Enhanced header with styling */}
       <div className="w-full max-w-4xl relative">
-        {/* Apple-style purple and blue inward gradient effect */}
-        <div className="absolute inset-0 rounded-3xl pointer-events-none" style={{ 
-          boxShadow: `inset 0 0 80px 30px rgba(79, 70, 229, 0.15), inset 0 0 40px 20px rgba(59, 130, 246, 0.15)`,
-          borderRadius: 'inherit'
-        }}></div>
+        {/* Removed the Apple-style purple and blue inward gradient effect div */}
         
         <div className="backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden border border-white/20 p-8 mb-8">
           <div className="text-center">
@@ -63,9 +59,9 @@ export default function AssessmentPage({ params }: { params: { student_id: strin
               <span className="text-gray-700 font-medium">AlterView</span>
             </div>
             
-            {/* Gradient title */}
+            {/* Gradient title - now showing assessment name with previous portal styling */}
             <h1 className="text-5xl font-extrabold mb-6 bg-gradient-to-r from-indigo-600 to-blue-500 text-transparent bg-clip-text tracking-tight">
-              Assessment Portal
+              {assessment?.name || 'Loading Assessment...'}
             </h1>
             
             {loading ? (
@@ -79,8 +75,9 @@ export default function AssessmentPage({ params }: { params: { student_id: strin
               </div>
             ) : (
               <div className="transition-all duration-300 ease-in-out">
-                <p className="text-2xl font-bold mb-4 bg-gradient-to-r from-indigo-500 to-blue-600 text-transparent bg-clip-text">
-                  {assessment?.name}
+                {/* Assessment Portal title - now with more blue in the gradient */}
+                <p className="text-2xl font-bold mb-4 bg-gradient-to-r from-blue-500 to-blue-700 text-transparent bg-clip-text">
+                  Assessment Portal
                 </p>
                 
                 {/* Student info card */}
@@ -92,7 +89,6 @@ export default function AssessmentPage({ params }: { params: { student_id: strin
                       </svg>
                     </div>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">Student Login</h3>
                   <div className="flex flex-col space-y-2">
                     <div className="flex items-center space-x-2">
                       <span className="text-gray-500">ID:</span>
