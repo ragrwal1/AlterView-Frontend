@@ -13,6 +13,7 @@ import {
 import { useEffect, useState } from "react";
 // import { MessageActionTypeEnum, useMessages } from "./useMessages";
 import { vapi } from "@/lib/vapi.sdk";
+import { useRouter, usePathname } from "next/navigation";
 
 export enum CALL_STATUS {
   INACTIVE = "inactive",
@@ -21,6 +22,8 @@ export enum CALL_STATUS {
 }
 
 export function useVapi(assessmentId?: string) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [isSpeechActive, setIsSpeechActive] = useState(false);
   const [callStatus, setCallStatus] = useState<CALL_STATUS>(
     CALL_STATUS.INACTIVE
@@ -120,6 +123,21 @@ export function useVapi(assessmentId?: string) {
     }
   };
 
+  // Function to extract student ID from the URL path
+  const getStudentIdFromPath = (): string => {
+    // Expected path format: /student/{studentId}/assessment/{assessmentId}
+    // or similar pattern with student ID in the path
+    const pathParts = pathname?.split('/') || [];
+    const studentIndex = pathParts.findIndex(part => part === 'student');
+    
+    if (studentIndex !== -1 && studentIndex + 1 < pathParts.length) {
+      return pathParts[studentIndex + 1];
+    }
+    
+    // Fallback to localStorage if not found in URL
+    return localStorage.getItem('studentId') || 'default';
+  };
+
   const stop = () => {
     setCallStatus(CALL_STATUS.LOADING);
     
@@ -127,6 +145,65 @@ export function useVapi(assessmentId?: string) {
     const finalTranscript = formatTranscript(messages);
     console.log("Final Chat Transcript:");
     console.log(finalTranscript);
+    
+    // Submit the assessment results to the API
+    if (assessmentId) {
+      // Get student ID from URL path and convert to integer
+      const studentIdStr = getStudentIdFromPath();
+      // Ensure we have a valid integer for student_id (default to 1 if parsing fails)
+      const studentId = parseInt(studentIdStr, 10) || 1;
+      
+      // Convert assessmentId to integer if it's a string
+      const assessmentIdInt = typeof assessmentId === 'string' ? parseInt(assessmentId, 10) : assessmentId;
+      
+      // Create the mindmap as a JSON string
+      const mindmapJson = JSON.stringify({
+        nodes: [],
+        edges: []
+      });
+      
+      // Prepare the payload for the API request
+      const payload = {
+        student_id: studentId,
+        teacher_id: 1, // Already an integer
+        assessment_id: assessmentIdInt,
+        transcript: finalTranscript,
+        mindmap: mindmapJson
+      };
+      
+      console.log('Submitting assessment results with payload:', payload);
+      
+      // Make the API request
+      fetch('https://alterview-api.vercel.app/api/v1/assessment-results/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`API request failed with status ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Assessment results submitted successfully:', data);
+        
+        // Redirect to the results page after successful submission
+        setTimeout(() => {
+          router.push(`/student/${studentIdStr}/results/${assessmentId}`);
+        }, 500);
+      })
+      .catch(error => {
+        console.error('Error submitting assessment results:', error);
+        
+        // Still redirect even if the API call fails
+        setTimeout(() => {
+          router.push(`/student/${studentIdStr}/results/${assessmentId}`);
+        }, 500);
+      });
+    }
     
     vapi.stop();
   };
