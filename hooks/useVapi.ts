@@ -48,6 +48,27 @@ export function useVapi(assessmentId?: string) {
     const onCallEnd = () => {
       console.log("Call has stopped");
       setCallStatus(CALL_STATUS.INACTIVE);
+      
+      // Log the final transcript when the call ends
+      const finalTranscript = formatTranscript(messages);
+      console.log("Final Chat Transcript:");
+      console.log(finalTranscript);
+    };
+
+    // Function to format the transcript from messages
+    const formatTranscript = (msgs: Message[]): string => {
+      // Filter only transcript messages with FINAL type
+      const transcriptMsgs = msgs.filter(
+        msg => 
+          msg.type === MessageTypeEnum.TRANSCRIPT && 
+          'transcriptType' in msg && 
+          msg.transcriptType === TranscriptMessageTypeEnum.FINAL
+      ) as TranscriptMessage[];
+      
+      // Format the transcript with role labels
+      return transcriptMsgs.map(msg => 
+        `${msg.role.toUpperCase()}: ${msg.transcript}`
+      ).join('\n\n');
     };
 
     const onVolumeLevel = (volume: number) => {
