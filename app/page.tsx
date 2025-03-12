@@ -188,7 +188,7 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   <h3 className="text-xl font-semibold mb-2">Thank You!</h3>
-                  <p>We&apos;ve received your information and will be in touch soon.</p>
+                  <p>We've received your information and will be in touch soon.</p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="bg-white/10 backdrop-blur-md rounded-xl p-6">
@@ -411,7 +411,7 @@ function NetworkGraph({ contained = false }: { contained?: boolean }) {
       }
       window.removeEventListener('resize', resizeCanvas);
     };
-  }, [contained, nodeColors]);
+  }, [contained]);
   
   return <canvas ref={canvasRef} className="w-full h-full" />;
 } 
