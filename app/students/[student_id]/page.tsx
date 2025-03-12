@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeftCircle, BookOpen, ChevronRight, LogOut, History, ExternalLink, FileText, Calendar } from "lucide-react";
+import { ArrowLeftCircle, BookOpen, ChevronRight, LogOut, History, ExternalLink, FileText, Calendar, ChevronDown } from "lucide-react";
 import FloatingIcons from "@/components/app/FloatingIcons";
 
 // Mock data for assessments
@@ -51,6 +51,7 @@ export default function StudentDashboard({
   const [assessmentResults, setAssessmentResults] = useState<AssessmentResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showAllResults, setShowAllResults] = useState(false);
 
   useEffect(() => {
     setLoaded(true);
@@ -92,6 +93,11 @@ export default function StudentDashboard({
       minute: '2-digit'
     });
   };
+
+  // Get visible results - either all or just the first 5
+  const visibleResults = showAllResults 
+    ? assessmentResults 
+    : assessmentResults.slice(0, 5);
 
   return (
     <div className="relative min-h-[calc(100vh-10rem)] px-4 py-8 overflow-hidden">
@@ -192,14 +198,9 @@ export default function StudentDashboard({
               <History className="h-5 w-5 text-alterview-violet mr-2" />
               <h2 className="text-xl font-semibold text-gray-800">Past Attempts</h2>
             </div>
-            {assessmentResults.length > 0 && (
-              <button 
-                className="text-sm text-alterview-indigo hover:text-alterview-violet transition-colors flex items-center"
-              >
-                <span>View all</span>
-                <ExternalLink className="h-3.5 w-3.5 ml-1" />
-              </button>
-            )}
+            <span className="text-sm text-gray-500">
+              {assessmentResults.length > 0 && `Showing ${visibleResults.length} of ${assessmentResults.length}`}
+            </span>
           </div>
 
           {/* Loading state */}
@@ -236,35 +237,59 @@ export default function StudentDashboard({
 
           {/* Assessment results list */}
           {!isLoading && !error && assessmentResults.length > 0 ? (
-            <div className="divide-y divide-gray-100">
-              {assessmentResults.map((result, index) => (
-                <div
-                  key={result.id}
-                  className="hover:bg-gray-50/80 transition-colors"
-                  style={{ animationDelay: `${150 + index * 50}ms` }}
-                >
-                  <div className="px-8 py-5 flex justify-between items-center">
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900 mb-1">Assessment #{result.assessment_id}</h3>
-                      <div className="flex items-center text-sm text-gray-500 space-x-3">
-                        <div className="flex items-center">
-                          <Calendar className="h-3.5 w-3.5 mr-1 text-gray-400" />
-                          <span>{formatDate(result.created_at)}</span>
+            <>
+              <div className="divide-y divide-gray-100">
+                {visibleResults.map((result, index) => (
+                  <div
+                    key={result.id}
+                    className="hover:bg-gray-50/80 transition-colors"
+                    style={{ animationDelay: `${150 + index * 50}ms` }}
+                  >
+                    <div className="px-8 py-5 flex justify-between items-center">
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900 mb-1">Assessment #{result.assessment_id}</h3>
+                        <div className="flex items-center text-sm text-gray-500 space-x-3">
+                          <div className="flex items-center">
+                            <Calendar className="h-3.5 w-3.5 mr-1 text-gray-400" />
+                            <span>{formatDate(result.created_at)}</span>
+                          </div>
                         </div>
                       </div>
+                      <Link
+                        href={`/student/${params.student_id}/results/${result.id}`}
+                        className="flex items-center px-4 py-2 text-alterview-indigo border border-alterview-indigo/30 rounded-xl hover:bg-alterview-indigo/5 transition-colors group"
+                      >
+                        <FileText className="h-4 w-4 mr-1" />
+                        <span>View</span>
+                        <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
+                      </Link>
                     </div>
-                    <Link
-                      href={`/student/${params.student_id}/results/${result.id}`}
-                      className="flex items-center px-4 py-2 text-alterview-indigo border border-alterview-indigo/30 rounded-xl hover:bg-alterview-indigo/5 transition-colors group"
-                    >
-                      <FileText className="h-4 w-4 mr-1" />
-                      <span>View</span>
-                      <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
-                    </Link>
                   </div>
+                ))}
+              </div>
+              
+              {/* Show More button - only display if there are more than 5 results */}
+              {assessmentResults.length > 5 && (
+                <div className="px-8 py-4 border-t border-gray-100 flex justify-center">
+                  <button 
+                    onClick={() => setShowAllResults(!showAllResults)}
+                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-alterview-indigo hover:text-alterview-violet transition-colors"
+                  >
+                    {showAllResults ? (
+                      <>
+                        <span>Show Less</span>
+                        <ChevronDown className="h-4 w-4 ml-1 transform rotate-180" />
+                      </>
+                    ) : (
+                      <>
+                        <span>Show More</span>
+                        <ChevronDown className="h-4 w-4 ml-1" />
+                      </>
+                    )}
+                  </button>
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           ) : (
             !isLoading && !error && (
               <div className="px-8 py-10 text-center">
@@ -278,13 +303,6 @@ export default function StudentDashboard({
                       After you complete an assessment, your attempts will appear here for review.
                     </p>
                   </div>
-                  
-                  <button 
-                    className="mt-2 inline-flex items-center px-4 py-2 text-sm font-medium text-alterview-indigo border border-alterview-indigo/30 rounded-xl hover:bg-alterview-indigo/5 transition-colors"
-                  >
-                    <History className="h-4 w-4 mr-2" />
-                    Browse your history
-                  </button>
                 </div>
               </div>
             )

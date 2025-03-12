@@ -9,12 +9,22 @@ import {
 } from "@/services/assessmentService";
 import { useRouter } from "next/navigation";
 import FloatingIcons from "@/components/app/FloatingIcons";
+import MindMap from "@/components/app/MindMap";
 import {
   ArrowLeftCircle,
   BookOpen,
   Users,
   Activity,
   Edit3,
+  BarChart2,
+  FileText,
+  CheckCircle,
+  AlertCircle,
+  Brain,
+  Lightbulb,
+  BarChart,
+  Share2,
+  Download,
 } from "lucide-react";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -28,6 +38,58 @@ const mockStudents = [
   { id: "student5", name: "Jordan Lee", status: "Completed", score: 78 },
 ];
 
+// Mock data for the aggregated mindmap insights
+const mockAggregatedData = {
+  topic: {
+    name: "Algorithm Analysis",
+    description: "The systematic study of the performance of algorithms, focusing on their efficiency in terms of time and space requirements.",
+    understandingLevel: 4,
+    subtopics: [
+      {
+        name: "Time Complexity",
+        description: "A measurement of the amount of time an algorithm takes to complete as a function of the input size.",
+        understandingLevel: 3,
+        subtopics: [
+          {
+            name: "Asymptotic Analysis",
+            description: "Mathematical approach to describe algorithm behavior as input sizes become very large.",
+            understandingLevel: 2,
+            subtopics: []
+          }
+        ]
+      },
+      {
+        name: "Space Complexity",
+        description: "The amount of memory space required by an algorithm during program execution.",
+        understandingLevel: 4,
+        subtopics: []
+      }
+    ]
+  }
+};
+
+// Mock insights data
+const mockInsights = [
+  {
+    title: "Strong Understanding",
+    description: "Most students grasp the core concept of algorithm analysis and its importance.",
+    percentage: 85,
+    color: "emerald"
+  },
+  {
+    title: "Common Misconception",
+    description: "Students often confuse time complexity with actual runtime in seconds.",
+    percentage: 65,
+    color: "amber"
+  },
+  {
+    title: "Knowledge Gap",
+    description: "Understanding of logarithmic complexity is weaker than other complexity classes.",
+    percentage: 42,
+    color: "rose"
+  }
+];
+
 export default function AssessmentReview({
   params,
 }: {
@@ -35,6 +97,8 @@ export default function AssessmentReview({
 }) {
   const router = useRouter();
   const [loaded, setLoaded] = useState(false);
+  const [showInsights, setShowInsights] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     setLoaded(true);
@@ -46,13 +110,28 @@ export default function AssessmentReview({
     );
   };
 
+  const handleGenerateInsights = () => {
+    setIsGenerating(true);
+    
+    // Simulate API call to generate insights
+    setTimeout(() => {
+      setIsGenerating(false);
+      setShowInsights(true);
+    }, 2000);
+  };
+
+  const handleDownloadReport = () => {
+    // Placeholder for download report functionality
+    alert("Report download functionality will be integrated with backend API");
+  };
+
   return (
     <div className="relative min-h-[calc(100vh-10rem)] px-4 py-8 overflow-hidden">
       {/* Background animation */}
       <FloatingIcons />
 
       {/* Main container */}
-      <div className="container mx-auto max-w-4xl relative z-10">
+      <div className="container mx-auto max-w-6xl relative z-10">
         {/* Header section with title */}
         <div
           className={`transition-all duration-700 ease-out ${
@@ -138,6 +217,157 @@ export default function AssessmentReview({
           </div>
         </div>
 
+        {/* Aggregated Insights Section */}
+        <div className="mb-6">
+          {!showInsights ? (
+            <div className="bg-white/90 backdrop-blur-md rounded-2xl py-10 shadow-apple flex flex-col items-center justify-center transition-all duration-700 ease-out">
+              <Brain className="h-16 w-16 text-alterview-indigo mb-4 opacity-50" />
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                Generate Aggregated Insights
+              </h3>
+              <p className="text-gray-600 max-w-md text-center mb-6">
+                Analyze student mind maps to discover knowledge patterns, common misconceptions,
+                and areas that need additional attention.
+              </p>
+              <button
+                onClick={handleGenerateInsights}
+                disabled={isGenerating}
+                className={`px-6 py-3 bg-alterview-gradient text-white rounded-xl hover:shadow-md transition-all duration-300 flex items-center ${
+                  isGenerating ? "opacity-75" : ""
+                }`}
+              >
+                {isGenerating ? (
+                  <>
+                    <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    <span>Analyzing Responses...</span>
+                  </>
+                ) : (
+                  <>
+                    <BarChart2 className="h-4 w-4 mr-2" />
+                    <span>Generate Insights</span>
+                  </>
+                )}
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              {/* Insights Cards */}
+              <div className="col-span-2">
+                <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-apple overflow-hidden transition-all duration-700 ease-out h-full">
+                  <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Lightbulb className="h-5 w-5 text-alterview-indigo mr-2" />
+                      <h2 className="text-xl font-semibold text-gray-800">
+                        Class Insights
+                      </h2>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button 
+                        onClick={handleDownloadReport}
+                        className="p-2 text-gray-500 hover:text-alterview-indigo transition-colors rounded-lg hover:bg-gray-50"
+                      >
+                        <Download className="h-4 w-4" />
+                      </button>
+                      <button 
+                        className="p-2 text-gray-500 hover:text-alterview-indigo transition-colors rounded-lg hover:bg-gray-50"
+                      >
+                        <Share2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="p-8">
+                    <div className="grid grid-cols-1 gap-6">
+                      {mockInsights.map((insight, index) => (
+                        <div 
+                          key={index} 
+                          className="flex items-start p-4 border border-gray-100 rounded-xl hover:shadow-sm transition-all bg-white"
+                        >
+                          <div className={`p-3 rounded-full bg-${insight.color}-100 text-${insight.color}-600 mr-4 flex-shrink-0`}>
+                            {insight.title.includes("Strong") && <CheckCircle className="h-5 w-5" />}
+                            {insight.title.includes("Misconception") && <AlertCircle className="h-5 w-5" />}
+                            {insight.title.includes("Gap") && <BarChart className="h-5 w-5" />}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex justify-between items-start mb-2">
+                              <h4 className="font-medium text-gray-800">{insight.title}</h4>
+                              <span className={`text-sm font-medium text-${insight.color}-600`}>
+                                {insight.percentage}%
+                              </span>
+                            </div>
+                            <p className="text-gray-600 text-sm">{insight.description}</p>
+                            <div className="h-1.5 w-full bg-gray-100 rounded-full mt-3 overflow-hidden">
+                              <div 
+                                className={`h-full bg-${insight.color}-500 rounded-full`} 
+                                style={{ width: `${insight.percentage}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-6 pt-6 border-t border-gray-100">
+                      <h4 className="font-medium text-gray-800 mb-3">Recommended Actions</h4>
+                      <ul className="space-y-2">
+                        <li className="flex items-start">
+                          <div className="h-5 w-5 text-emerald-500 mr-2 flex-shrink-0">•</div>
+                          <p className="text-sm text-gray-600">Review logarithmic complexity concepts with a focus on practical applications.</p>
+                        </li>
+                        <li className="flex items-start">
+                          <div className="h-5 w-5 text-emerald-500 mr-2 flex-shrink-0">•</div>
+                          <p className="text-sm text-gray-600">Address the common misconception about time complexity vs. actual runtime.</p>
+                        </li>
+                        <li className="flex items-start">
+                          <div className="h-5 w-5 text-emerald-500 mr-2 flex-shrink-0">•</div>
+                          <p className="text-sm text-gray-600">Provide additional exercises on analyzing algorithms with different complexity classes.</p>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Aggregate Mind Map */}
+              <div className="col-span-1">
+                <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-apple overflow-hidden transition-all duration-700 ease-out h-full flex flex-col">
+                  <div className="px-8 py-6 border-b border-gray-100 flex items-center">
+                    <FileText className="h-5 w-5 text-alterview-indigo mr-2" />
+                    <h2 className="text-xl font-semibold text-gray-800">
+                      Class Knowledge Map
+                    </h2>
+                  </div>
+                  <div className="p-2 flex-1 min-h-[400px]">
+                    <div className="h-full w-full">
+                      <MindMap 
+                        data={mockAggregatedData} 
+                        className="w-full h-full min-h-[400px]" 
+                      />
+                    </div>
+                  </div>
+                  <div className="px-8 py-4 border-t border-gray-100 bg-gray-50">
+                    <div className="flex justify-between items-center">
+                      <p className="text-xs text-gray-500">Understanding Legend:</p>
+                      <div className="flex space-x-2">
+                        <div className="flex items-center">
+                          <div className="h-2 w-2 rounded-full bg-red-500 mr-1"></div>
+                          <span className="text-xs">Low</span>
+                        </div>
+                        <div className="flex items-center">
+                          <div className="h-2 w-2 rounded-full bg-yellow-500 mr-1"></div>
+                          <span className="text-xs">Medium</span>
+                        </div>
+                        <div className="flex items-center">
+                          <div className="h-2 w-2 rounded-full bg-green-500 mr-1"></div>
+                          <span className="text-xs">High</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Student Results section */}
         <div
           className="bg-white/90 backdrop-blur-md rounded-2xl shadow-apple animate-scaleIn overflow-hidden transition-all duration-700 ease-out"
@@ -205,12 +435,16 @@ export default function AssessmentReview({
                       )}
                     </td>
                     <td className="py-4 px-8 text-right">
-                      <Link
-                        href={`/assessment/${student.id}/${params.assessment_id}`}
-                        className="text-alterview-indigo hover:text-alterview-violet transition-colors font-medium"
-                      >
-                        View Interview
-                      </Link>
+                      {student.status === "Completed" ? (
+                        <Link
+                          href={`/teacher/${params.teacher_id}/student/${student.id}/results/${params.assessment_id}`}
+                          className="text-alterview-indigo hover:text-alterview-violet transition-colors font-medium"
+                        >
+                          View Results
+                        </Link>
+                      ) : (
+                        <span className="text-gray-400">Pending</span>
+                      )}
                     </td>
                   </tr>
                 ))}
