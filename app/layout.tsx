@@ -22,8 +22,8 @@ export default function RootLayout({
         <div className="min-h-screen bg-gray-50 flex flex-col">
           <header className="w-full bg-white shadow-soft py-4">
             <div className="container mx-auto px-4 flex items-center justify-between">
-              <Link href="/" className="flex items-center space-x-2">
-                <div className="relative h-10 w-10">
+              <Link href="/" className="flex items-center">
+                <div className="relative h-16 w-16">
                   <Image
                     src="/alterview-logo.svg"
                     alt="Alterview Logo"
@@ -32,7 +32,7 @@ export default function RootLayout({
                     priority
                   />
                 </div>
-                <span className="text-2xl font-bold bg-clip-text text-transparent bg-alterview-gradient">
+                <span className="text-2xl font-bold bg-clip-text text-transparent bg-alterview-gradient -ml-1">
                   AlterView
                 </span>
               </Link>

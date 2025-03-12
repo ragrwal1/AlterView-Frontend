@@ -46,7 +46,7 @@ export default function StudentLogin() {
       >
         {/* Top logo section */}
         <div className="flex justify-center mb-6">
-          <div className="relative h-16 w-16 animate-float">
+          <div className="relative h-24 w-24 animate-float">
             <Image
               src="/alterview-logo.svg"
               alt="AlterView Logo"
