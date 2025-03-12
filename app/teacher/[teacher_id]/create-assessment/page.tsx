@@ -265,7 +265,7 @@ export default function CreateAssessment({
                     ? 'bg-alterview-gradient hover:shadow-md' 
                     : 'bg-gray-300 cursor-not-allowed'}`}
                   type="submit"
-                  disabled={isSubmitting || !title || !description || (courseMaterial && !fileValid)}
+                  disabled={isSubmitting || !title || !description || (courseMaterial !== null && !fileValid)}
                 >
                   {isSubmitting ? "Creating..." : "Create Assessment"}
                 </button>
