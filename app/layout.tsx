@@ -23,7 +23,7 @@ export default function RootLayout({
           <header className="w-full bg-white shadow-soft py-4">
             <div className="container mx-auto px-4 flex items-center justify-between">
               <Link href="/" className="flex items-center">
-                <div className="relative h-16 w-16">
+                <div className="relative h-20 w-20">
                   <Image
                     src="/alterview-logo.svg"
                     alt="Alterview Logo"
