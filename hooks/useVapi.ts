@@ -22,6 +22,84 @@ export enum CALL_STATUS {
   LOADING = "loading",
 }
 
+//mindmap json hard defined
+
+const mindmap = {
+  "topic": {
+    "name": "Algorithm Analysis",
+    "description": "The systematic study of the performance of algorithms, focusing on their efficiency in terms of time and space requirements. It provides a framework to evaluate and compare different algorithmic solutions to computational problems.",
+    "assessmentCriteria": {
+      "excellentUnderstanding": [
+        "Student can precisely define algorithm analysis and explain its importance in computer science",
+        "Student can compare different algorithms based on efficiency metrics",
+        "Student can identify which algorithm is most appropriate for specific problem contexts"
+      ],
+      "adequateUnderstanding": [
+        "Student broadly understands algorithm analysis as evaluating algorithm performance",
+        "Student can identify that some algorithms are more efficient than others"
+      ],
+      "misconceptions": [
+        "Confusing algorithm analysis with code debugging or testing",
+        "Believing that the fastest algorithm in practice is always the one with the best asymptotic complexity",
+        "Assuming that algorithm analysis only concerns execution time and not memory usage"
+      ],
+      "tutorGuidance": "Do not give direct answers about which algorithm is 'best' without context. Guide students to understand that algorithm selection depends on specific constraints, input sizes, and implementation details."
+    },
+    "studentResponse": "",
+    "understandingLevel": null,
+    "subtopics": [
+      {
+        "name": "Time Complexity",
+        "description": "A measurement of the amount of time an algorithm takes to complete as a function of the input size. It helps predict how runtime scales with increasing data size and is crucial for evaluating algorithm performance in large-scale applications.",
+        "assessmentCriteria": {
+          "excellentUnderstanding": [
+            "Student can define time complexity in terms of how runtime scales with input size",
+            "Student can analyze basic algorithms to determine their time complexity",
+            "Student understands the difference between best, average, and worst-case complexity"
+          ],
+          "adequateUnderstanding": [
+            "Student recognizes that time complexity relates to how long algorithms take to run",
+            "Student can identify that larger inputs generally require more processing time"
+          ],
+          "misconceptions": [
+            "Confusing time complexity with actual runtime in seconds",
+            "Assuming complexity always measures the exact number of operations",
+            "Believing that constant factors are irrelevant in all practical scenarios"
+          ],
+          "tutorGuidance": "Avoid evaluating algorithms solely based on asymptotic complexity without considering constant factors for small inputs. Remind students that O(n²) might outperform O(n log n) for very small n due to simpler operations and lower constant factors."
+        },
+        "studentResponse": "",
+        "understandingLevel": null,
+        "subtopics": [
+          {
+            "name": "Asymptotic Analysis",
+            "description": "Mathematical approach to describe algorithm behavior as input sizes become very large, focusing on growth rate rather than exact operation counts. It allows comparison of algorithms based on their scaling behavior without being concerned with hardware specifics or constant factors.",
+            "assessmentCriteria": {
+              "excellentUnderstanding": [
+                "Student can explain why asymptotic analysis focuses on growth rates as input sizes increase",
+                "Student understands that constant factors and lower-order terms become less significant with large inputs",
+                "Student can apply asymptotic analysis to compare different algorithms"
+              ],
+              "adequateUnderstanding": [
+                "Student recognizes the concept of growth rates in algorithm analysis",
+                "Student can identify when asymptotic analysis is useful despite not providing exact runtime figures"
+              ],
+              "misconceptions": [
+                "Believing asymptotic analysis gives precise runtime predictions",
+                "Ignoring lower-order terms completely in scenarios where they matter"
+              ],
+              "tutorGuidance": "Clarify that while asymptotic analysis simplifies comparisons, practical performance may still depend on constant factors and lower-order terms for small input sizes."
+            },
+            "studentResponse": "",
+            "understandingLevel": null,
+            "subtopics": []
+          }
+        ]
+      }
+    ]
+  }
+}
+
 export function useVapi(assessmentId?: string) {
   const router = useRouter();
   const pathname = usePathname();
@@ -186,7 +264,7 @@ export function useVapi(assessmentId?: string) {
         studentId,        // student_id
         null,             // voice_recording_id (null as requested)
         finalTranscript,  // transcript
-        null              // mindmap (null as requested)
+        mindmap              // mindmap (null as requested)
       )
       .then(response => {
         console.log('Assessment results submitted successfully:', response);
