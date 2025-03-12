@@ -331,7 +331,7 @@ const MindMap: React.FC<MindMapProps> = ({ data, className = '' }) => {
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     `;
 
-    const createButton = (text, onClick) => {
+    const createButton = (text: string, onClick: () => void) => {
       const button = document.createElement('button');
       button.className = 'control-btn';
       button.innerHTML = text;
