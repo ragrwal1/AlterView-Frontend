@@ -55,22 +55,6 @@ export function useVapi(assessmentId?: string) {
       console.log(finalTranscript);
     };
 
-    // Function to format the transcript from messages
-    const formatTranscript = (msgs: Message[]): string => {
-      // Filter only transcript messages with FINAL type
-      const transcriptMsgs = msgs.filter(
-        msg => 
-          msg.type === MessageTypeEnum.TRANSCRIPT && 
-          'transcriptType' in msg && 
-          msg.transcriptType === TranscriptMessageTypeEnum.FINAL
-      ) as TranscriptMessage[];
-      
-      // Format the transcript with role labels
-      return transcriptMsgs.map(msg => 
-        `${msg.role.toUpperCase()}: ${msg.transcript}`
-      ).join('\n\n');
-    };
-
     const onVolumeLevel = (volume: number) => {
       setAudioLevel(volume);
     };
@@ -138,6 +122,12 @@ export function useVapi(assessmentId?: string) {
 
   const stop = () => {
     setCallStatus(CALL_STATUS.LOADING);
+    
+    // Log the final transcript when the user manually stops the call
+    const finalTranscript = formatTranscript(messages);
+    console.log("Final Chat Transcript:");
+    console.log(finalTranscript);
+    
     vapi.stop();
   };
 
@@ -147,6 +137,22 @@ export function useVapi(assessmentId?: string) {
     } else {
       start();
     }
+  };
+
+  // Helper function to format the transcript
+  const formatTranscript = (msgs: Message[]): string => {
+    // Filter only transcript messages with FINAL type
+    const transcriptMsgs = msgs.filter(
+      msg => 
+        msg.type === MessageTypeEnum.TRANSCRIPT && 
+        'transcriptType' in msg && 
+        msg.transcriptType === TranscriptMessageTypeEnum.FINAL
+    ) as TranscriptMessage[];
+    
+    // Format the transcript with role labels
+    return transcriptMsgs.map(msg => 
+      `${msg.role.toUpperCase()}: ${msg.transcript}`
+    ).join('\n\n');
   };
 
   return {
