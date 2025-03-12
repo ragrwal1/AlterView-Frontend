@@ -21,6 +21,11 @@ export default function AssessmentPage({ params }: { params: { student_id: strin
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Store student ID in localStorage for later use
+    if (params.student_id) {
+      localStorage.setItem('studentId', params.student_id);
+    }
+    
     async function fetchAssessment() {
       try {
         const response = await fetch('https://alterview-api.vercel.app/api/v1/assessments');

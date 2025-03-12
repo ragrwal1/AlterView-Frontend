@@ -3,6 +3,7 @@
 import { assistant } from "@/assistants/assistant";
 import { createCustomAssistant } from "@/assistants/assistant";
 import { fetchAssessmentPromptData } from "@/services/assessmentService";
+import { postAssessmentResult } from "@/services/supabaseService";
 
 import {
   Message,
@@ -125,17 +126,33 @@ export function useVapi(assessmentId?: string) {
 
   // Function to extract student ID from the URL path
   const getStudentIdFromPath = (): string => {
-    // Expected path format: /student/{studentId}/assessment/{assessmentId}
-    // or similar pattern with student ID in the path
+    // Expected path formats:
+    // 1. /assessment/{studentId}/assessment/{assessmentId}
+    // 2. /student/{studentId}/assessment/{assessmentId}
+    // or similar patterns with student ID in the path
     const pathParts = pathname?.split('/') || [];
-    const studentIndex = pathParts.findIndex(part => part === 'student');
     
+    // Check for student ID in path after 'student' segment
+    const studentIndex = pathParts.findIndex(part => part === 'student');
     if (studentIndex !== -1 && studentIndex + 1 < pathParts.length) {
       return pathParts[studentIndex + 1];
     }
     
+    // Check for student ID in path after 'assessment' segment (if URL is /assessment/{studentId}/...)
+    const assessmentIndex = pathParts.findIndex(part => part === 'assessment');
+    if (assessmentIndex !== -1 && assessmentIndex + 1 < pathParts.length) {
+      return pathParts[assessmentIndex + 1];
+    }
+    
     // Fallback to localStorage if not found in URL
-    return localStorage.getItem('studentId') || 'default';
+    const storedStudentId = localStorage.getItem('studentId');
+    if (storedStudentId) {
+      return storedStudentId;
+    }
+    
+    // Default fallback
+    console.warn('Could not determine student ID from path or localStorage, using default');
+    return '1';
   };
 
   const stop = () => {
@@ -146,83 +163,44 @@ export function useVapi(assessmentId?: string) {
     console.log("Final Chat Transcript:");
     console.log(finalTranscript);
     
-    // Submit the assessment results to the API
+    // Get student ID from URL path
+    const studentIdStr = getStudentIdFromPath();
+    
+    // Ensure we have a valid integer for student_id (default to 1 if parsing fails)
+    const studentId = parseInt(studentIdStr, 10) || 1;
+    
+    // Use a default assessment ID of "1" if not provided
+    const assessmentIdToUse = assessmentId || "1";
+    
+    // Convert assessmentId to integer if it's a string
+    const assessmentIdInt = typeof assessmentIdToUse === 'string' ? parseInt(assessmentIdToUse, 10) : assessmentIdToUse;
+    
+    // Submit the assessment results to the API if assessmentId is provided
     if (assessmentId) {
-      // Get student ID from URL path and convert to integer
-      const studentIdStr = getStudentIdFromPath();
-      // Ensure we have a valid integer for student_id (default to 1 if parsing fails)
-      const studentId = parseInt(studentIdStr, 10) || 1;
+      console.log('Submitting assessment results to Supabase');
       
-      // Convert assessmentId to integer if it's a string
-      const assessmentIdInt = typeof assessmentId === 'string' ? parseInt(assessmentId, 10) : assessmentId;
-      
-      // Create the mindmap as a JSON string
-      const mindmapJson = JSON.stringify({
-      });
-      
-      // Prepare the payload for the API request
-      const payload = {
-        student_id: studentId,
-        teacher_id: 1, // Already an integer
-        assessment_id: assessmentIdInt,
-        transcript: finalTranscript,
-        mindmap: "{}"
-      };
-      
-      console.log('Submitting assessment results with payload:', payload);
-      
-      // Construct query parameters for GET request
-      const queryParams = new URLSearchParams({
-        student_id: payload.student_id.toString(),
-        assessment_id: payload.assessment_id.toString(),
-        transcript: payload.transcript,
-        mindmap: payload.mindmap
-      }).toString();
-      
-      // Make the API request with CORS headers using GET method
-      fetch(`https://alterview-api.vercel.app/api/v1/assessment-results/?${queryParams}`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Origin': window.location.origin,
-          // Update headers for GET request
-          'Access-Control-Request-Method': 'GET',
-          'Access-Control-Request-Headers': 'Accept'
-        },
-        // Add credentials if needed for cookies/auth
-        credentials: 'include',
-        mode: 'cors'
-        // No body for GET request
-      })
-      .then(async response => {
-        // Log the complete response information
-        console.log('API Response Status:', response.status, response.statusText);
+      // Use the postAssessmentResult function from supabaseService
+      postAssessmentResult(
+        assessmentIdInt,  // assessment_id
+        1,                // teacher_id (hardcoded to 1 as in original code)
+        studentId,        // student_id
+        null,             // voice_recording_id (null as requested)
+        finalTranscript,  // transcript
+        null              // mindmap (null as requested)
+      )
+      .then(response => {
+        console.log('Assessment results submitted successfully:', response);
         
-        // Clone the response to read it twice (once for logging, once for processing)
-        const responseClone = response.clone();
+        // Extract the generated ID from the response
+        const generatedResultId = response.generatedId;
+        console.log('Generated assessment result ID:', generatedResultId);
         
-        try {
-          // Try to parse and log the response body as JSON
-          const responseBody = await responseClone.json();
-          console.log('API Response Body:', responseBody);
-        } catch (e) {
-          // If it's not JSON, try to get it as text
-          const responseText = await responseClone.text();
-          console.log('API Response Text:', responseText);
-        }
+        // Store the generated ID in localStorage for potential future use
+        localStorage.setItem('assessmentResultId', generatedResultId.toString());
         
-        if (!response.ok) {
-          throw new Error(`API request failed with status ${response.status}`);
-        }
-        
-        return response.json();
-      })
-      .then(data => {
-        console.log('Assessment results submitted successfully:', data);
-        
-        // Redirect to the results page after successful submission
+        // Redirect to the results page using the generated result ID
         setTimeout(() => {
-          router.push(`/student/${studentIdStr}/results/${assessmentId}`);
+          router.push(`/student/${studentIdStr}/results/${generatedResultId}`);
         }, 500);
       })
       .catch(error => {
@@ -232,11 +210,17 @@ export function useVapi(assessmentId?: string) {
         console.log('Transcript that would have been submitted:');
         console.log(finalTranscript);
         
-        // Still redirect even if the API call fails
+        // Still redirect even if the API call fails, but use the original assessment ID
         setTimeout(() => {
-          router.push(`/student/${studentIdStr}/results/${assessmentId}`);
+          router.push(`/student/${studentIdStr}/results/${assessmentIdToUse}`);
         }, 500);
       });
+    } else {
+      // If no assessmentId is provided, just navigate to the results page with default ID "1"
+      console.log('No assessment ID provided, navigating to results page with default ID "1"');
+      setTimeout(() => {
+        router.push(`/student/${studentIdStr}/results/1`);
+      }, 500);
     }
     
     vapi.stop();
