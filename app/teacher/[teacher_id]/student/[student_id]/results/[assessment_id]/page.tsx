@@ -421,6 +421,25 @@ export default function TeacherStudentResultsPage({ params }: { params: { teache
                           </svg>
                           <p className="text-gray-500 text-lg font-medium">No mind map available</p>
                           <p className="text-gray-400 text-sm mt-2">This assessment doesn't have a mind map yet</p>
+                          <button 
+                            className="mt-4 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-full hover:bg-indigo-200 transition-colors"
+                            onClick={() => {
+                              // For testing purposes, we'll use the sample data
+                              fetch('/sample.json')
+                                .then(response => response.json())
+                                .then(data => {
+                                  if (result) {
+                                    setResult({
+                                      ...result,
+                                      mindmap: data
+                                    });
+                                  }
+                                })
+                                .catch(err => console.error('Error loading sample mindmap:', err));
+                            }}
+                          >
+                            Load Sample Mind Map
+                          </button>
                         </div>
                       )}
                     </div>
