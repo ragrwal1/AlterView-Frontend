@@ -6,7 +6,7 @@ import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
 const TELEPROMPTER_CONFIG = {
   // Container settings
   container: {
-    height: '70vh',
+    height: '70vh', // Fixed height based on viewport
     widthPercentage: 75, // Percentage of viewport width
     borderRadius: '1.5rem',
     boxShadow: '0 0 40px rgba(0, 0, 0, 0.1)',
@@ -33,6 +33,10 @@ const TELEPROMPTER_CONFIG = {
       width: 'w-2',
       height: 'h-7',
     },
+    scrollbar: {
+      thumb: 'bg-indigo-400/50',
+      track: 'bg-transparent',
+    }
   },
   // Effects
   effects: {
@@ -236,10 +240,13 @@ function Display() {
     <div className="flex justify-center w-full">
       <div 
         ref={containerRef}
-        className={`flex flex-col h-[${TELEPROMPTER_CONFIG.container.height}] relative ${TELEPROMPTER_CONFIG.colors.background} backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden border ${TELEPROMPTER_CONFIG.colors.border}`}
+        className="flex flex-col relative backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden border"
         style={{ 
           width: containerDimensions.width > 0 ? `${containerDimensions.width}px` : `${TELEPROMPTER_CONFIG.container.widthPercentage}%`,
-          boxShadow: TELEPROMPTER_CONFIG.container.boxShadow
+          height: TELEPROMPTER_CONFIG.container.height,
+          boxShadow: TELEPROMPTER_CONFIG.container.boxShadow,
+          backgroundColor: 'rgba(0, 0, 0, 0.05)',
+          borderColor: 'rgba(255, 255, 255, 0.2)'
         }}
       >
         {/* Header */}
@@ -252,7 +259,7 @@ function Display() {
         <div 
           className="flex-1 flex flex-col items-center justify-center px-6 py-8 overflow-hidden"
           style={{ 
-            height: containerDimensions.height > 0 ? `${containerDimensions.height - TELEPROMPTER_CONFIG.container.headerHeight}px` : 'auto'
+            height: `calc(${TELEPROMPTER_CONFIG.container.height} - ${TELEPROMPTER_CONFIG.container.headerHeight}px)`
           }}
         >
           {/* Apple-style purple and blue inward gradient effect around the edges */}
@@ -270,42 +277,75 @@ function Display() {
             ) : (
               /* Display the transcript segments */
               <div className="w-full h-full flex flex-col items-center justify-center overflow-hidden relative">
-                {/* Transcript content */}
-                <div className={`w-full text-center overflow-y-auto overflow-x-hidden scrollbar-hide ${TELEPROMPTER_CONFIG.text.padding}`}>
-                  {transcriptSegments.map((segment, index) => (
-                    <div 
-                      key={index} 
-                      className={`${TELEPROMPTER_CONFIG.text.marginBetweenSegments} ${
-                        segment.role === MessageRoleEnum.ASSISTANT 
-                          ? TELEPROMPTER_CONFIG.colors.assistantText 
-                          : TELEPROMPTER_CONFIG.colors.userText
-                      } ${TELEPROMPTER_CONFIG.effects.fadeIn}`}
-                    >
-                      <p className={`${TELEPROMPTER_CONFIG.text.fontSize} ${TELEPROMPTER_CONFIG.text.fontWeight} ${TELEPROMPTER_CONFIG.text.lineHeight} ${TELEPROMPTER_CONFIG.text.letterSpacing} break-words`}>
-                        {segment.text}
-                      </p>
-                    </div>
-                  ))}
-                  
-                  {/* Show the active partial with a blinking cursor effect */}
-                  {activePartial && activeRole && (
-                    <div 
-                      className={`${TELEPROMPTER_CONFIG.text.marginBetweenSegments} ${
-                        activeRole === MessageRoleEnum.ASSISTANT 
-                          ? TELEPROMPTER_CONFIG.colors.assistantText 
-                          : TELEPROMPTER_CONFIG.colors.userText
-                      } ${isTransitioning ? 'opacity-50' : 'opacity-100'} transition-opacity duration-200`}
-                    >
-                      <p className={`${TELEPROMPTER_CONFIG.text.fontSize} ${TELEPROMPTER_CONFIG.text.fontWeight} ${TELEPROMPTER_CONFIG.text.lineHeight} ${TELEPROMPTER_CONFIG.text.letterSpacing} break-words`}>
-                        {activePartial}
-                        {/* Blinking cursor */}
-                        <span className={`inline-block ${TELEPROMPTER_CONFIG.colors.cursor.width} ${TELEPROMPTER_CONFIG.colors.cursor.height} ${TELEPROMPTER_CONFIG.colors.cursor.color} ml-1 animate-pulse`}></span>
-                      </p>
-                    </div>
-                  )}
-                  
-                  {/* Invisible element to scroll to */}
-                  <div ref={messagesEndRef} />
+                {/* Transcript content - custom scrollbar styling */}
+                <div 
+                  className={`w-full text-center ${TELEPROMPTER_CONFIG.text.padding} h-full`}
+                  style={{
+                    overflowY: 'auto',
+                    overflowX: 'hidden',
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: `${TELEPROMPTER_CONFIG.colors.scrollbar.thumb} ${TELEPROMPTER_CONFIG.colors.scrollbar.track}`,
+                    msOverflowStyle: 'none' // IE and Edge
+                  }}
+                >
+                  <style jsx global>{`
+                    /* Hide scrollbar for Chrome, Safari and Opera */
+                    .custom-scrollbar::-webkit-scrollbar {
+                      width: 6px;
+                    }
+                    
+                    /* Track */
+                    .custom-scrollbar::-webkit-scrollbar-track {
+                      background: transparent;
+                    }
+                    
+                    /* Handle */
+                    .custom-scrollbar::-webkit-scrollbar-thumb {
+                      background: rgba(79, 70, 229, 0.5);
+                      border-radius: 3px;
+                    }
+                    
+                    /* Handle on hover */
+                    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                      background: rgba(79, 70, 229, 0.7);
+                    }
+                  `}</style>
+                  <div className="custom-scrollbar" style={{ height: '100%', overflowY: 'auto' }}>
+                    {transcriptSegments.map((segment, index) => (
+                      <div 
+                        key={index} 
+                        className={`${TELEPROMPTER_CONFIG.text.marginBetweenSegments} ${
+                          segment.role === MessageRoleEnum.ASSISTANT 
+                            ? TELEPROMPTER_CONFIG.colors.assistantText 
+                            : TELEPROMPTER_CONFIG.colors.userText
+                        } ${TELEPROMPTER_CONFIG.effects.fadeIn}`}
+                      >
+                        <p className={`${TELEPROMPTER_CONFIG.text.fontSize} ${TELEPROMPTER_CONFIG.text.fontWeight} ${TELEPROMPTER_CONFIG.text.lineHeight} ${TELEPROMPTER_CONFIG.text.letterSpacing} break-words`}>
+                          {segment.text}
+                        </p>
+                      </div>
+                    ))}
+                    
+                    {/* Show the active partial with a blinking cursor effect */}
+                    {activePartial && activeRole && (
+                      <div 
+                        className={`${TELEPROMPTER_CONFIG.text.marginBetweenSegments} ${
+                          activeRole === MessageRoleEnum.ASSISTANT 
+                            ? TELEPROMPTER_CONFIG.colors.assistantText 
+                            : TELEPROMPTER_CONFIG.colors.userText
+                        } ${isTransitioning ? 'opacity-50' : 'opacity-100'} transition-opacity duration-200`}
+                      >
+                        <p className={`${TELEPROMPTER_CONFIG.text.fontSize} ${TELEPROMPTER_CONFIG.text.fontWeight} ${TELEPROMPTER_CONFIG.text.lineHeight} ${TELEPROMPTER_CONFIG.text.letterSpacing} break-words`}>
+                          {activePartial}
+                          {/* Blinking cursor */}
+                          <span className={`inline-block ${TELEPROMPTER_CONFIG.colors.cursor.width} ${TELEPROMPTER_CONFIG.colors.cursor.height} ${TELEPROMPTER_CONFIG.colors.cursor.color} ml-1 animate-pulse`}></span>
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* Invisible element to scroll to */}
+                    <div ref={messagesEndRef} />
+                  </div>
                 </div>
               </div>
             )}
