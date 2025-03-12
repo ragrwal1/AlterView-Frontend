@@ -1,6 +1,8 @@
 "use client";
+
 import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
+
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [visibleSections, setVisibleSections] = useState<{[key: string]: boolean}>({
@@ -20,6 +22,7 @@ export default function Home() {
   
   const featuresRef = useRef<HTMLElement>(null);
   const ctaRef = useRef<HTMLElement>(null);
+
   // Check if element is in viewport - adjusted for quicker triggering
   const isInViewport = useCallback((element: HTMLElement) => {
     const rect = element.getBoundingClientRect();
@@ -28,10 +31,8 @@ export default function Home() {
       rect.bottom >= 0
     );
   }, []);
+
   // Handle scroll events to check which sections are visible
-
-
-  
   const handleScroll = useCallback(() => {
     if (featuresRef.current) {
       setVisibleSections(prev => ({
@@ -47,6 +48,7 @@ export default function Home() {
       }));
     }
   }, [isInViewport]);
+
   // Handle form input changes - immediate feedback
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -55,6 +57,7 @@ export default function Home() {
       [name]: value
     }));
   };
+
   // Handle form submission - faster processing
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,6 +76,7 @@ export default function Home() {
       }, 3000);
     }, 500);
   };
+
   useEffect(() => {
     setIsLoaded(true);
     setVisibleSections(prev => ({
@@ -89,6 +93,7 @@ export default function Home() {
       window.removeEventListener('scroll', handleScroll);
     };
   }, [handleScroll]);
+
   return (
     <div className="container mx-auto px-4 py-12 relative">
       {/* Hero Section */}
@@ -123,10 +128,12 @@ export default function Home() {
           </div>
         </div>
       </section>
+
       {/* Background network for the rest of the page (more subtle) */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 opacity-30">
-        <NetworkGraph contained={false} />
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 opacity-25 blur-[2px]">
+        <NetworkGraph contained={false} subtle={true} />
       </div>
+
       {/* Features Section */}
       <section 
         ref={featuresRef} 
@@ -167,6 +174,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+
       {/* CTA Section */}
       <section 
         ref={ctaRef}
@@ -250,8 +258,9 @@ export default function Home() {
     </div>
   );
 }
+
 // Interactive 3D Network Graph
-function NetworkGraph({ contained = false }: { contained?: boolean }) {
+function NetworkGraph({ contained = false, subtle = false }: { contained?: boolean, subtle?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const nodesRef = useRef<any[]>([]);
   const animationRef = useRef<number>(0);
@@ -292,28 +301,47 @@ function NetworkGraph({ contained = false }: { contained?: boolean }) {
     // Create nodes
     const createNodes = () => {
       const newNodes = [];
-      const nodeCount = contained ? 15 : 25; // Fewer nodes if contained
+      // Moderately reduce node count for subtle mode
+      const nodeCount = subtle ? 18 : (contained ? 15 : 25);
+      
+      // Define padding to prevent nodes from approaching the edge too closely
+      const edgePadding = contained ? 25 : 40; // Larger padding for non-contained mode
       
       for (let i = 0; i < nodeCount; i++) {
+        // Adjust size for subtle mode - but less drastically
+        const baseMaxRadius = contained ? 7 : 10;
+        const maxRadius = subtle ? baseMaxRadius * 0.8 : baseMaxRadius; // Less reduction in subtle mode
+        const glowMultiplier = subtle ? 1.8 : 2; // Moderately reduced glow effect in subtle mode
+        
+        // Calculate the safe area for node positions considering their size and glow
+        const effectiveRadius = maxRadius * glowMultiplier;
+        const safeAreaPadding = edgePadding + effectiveRadius;
+        
+        // Position nodes within the safe area
         newNodes.push({
           id: i,
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
+          x: safeAreaPadding + Math.random() * (canvas.width - 2 * safeAreaPadding),
+          y: safeAreaPadding + Math.random() * (canvas.height - 2 * safeAreaPadding),
           z: Math.random() * 200 - 100, // Z-axis for 3D effect (-100 to 100)
-          radius: contained ? (3 + Math.random() * 4) : (4 + Math.random() * 6), // Smaller nodes if contained
+          // Less dramatic radius reduction for subtle mode
+          radius: subtle ? (2.5 + Math.random() * 3.5) : (contained ? (3 + Math.random() * 4) : (4 + Math.random() * 6)),
           color: nodeColors[Math.floor(Math.random() * nodeColors.length)],
           velocity: {
-            x: (Math.random() - 0.5) * (contained ? 0.4 : 0.5), // Slightly faster movement
-            y: (Math.random() - 0.5) * (contained ? 0.4 : 0.5),
-            z: (Math.random() - 0.5) * (contained ? 0.3 : 0.4),
+            // Slightly slower movement for subtle mode, but not as slow as before
+            x: (Math.random() - 0.5) * (subtle ? 0.3 : (contained ? 0.4 : 0.5)),
+            y: (Math.random() - 0.5) * (subtle ? 0.3 : (contained ? 0.4 : 0.5)),
+            z: (Math.random() - 0.5) * (subtle ? 0.25 : (contained ? 0.3 : 0.4)),
           },
           connections: [] as number[],
+          // Store the padding value with each node to use during bounce calculations
+          effectiveRadius: effectiveRadius
         });
       }
       
       // Create connections between nodes (network edges)
       for (let i = 0; i < newNodes.length; i++) {
-        const connectionCount = 2 + Math.floor(Math.random() * 3); // 2-4 connections per node
+        // Moderate number of connections for subtle mode
+        const connectionCount = subtle ? (1 + Math.floor(Math.random() * 2.5)) : (2 + Math.floor(Math.random() * 3));
         for (let j = 0; j < connectionCount; j++) {
           const target = Math.floor(Math.random() * newNodes.length);
           if (target !== i && !newNodes[i].connections.includes(target)) {
@@ -334,7 +362,8 @@ function NetworkGraph({ contained = false }: { contained?: boolean }) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
       // Draw connections first (behind nodes)
-      ctx.lineWidth = contained ? 0.8 : 1; // Slightly thinner lines if contained
+      // Moderate line thickness for subtle mode - not as thin as before
+      ctx.lineWidth = subtle ? 0.7 : (contained ? 0.8 : 1);
       const nodes = nodesRef.current;
       
       for (let i = 0; i < nodes.length; i++) {
@@ -346,7 +375,9 @@ function NetworkGraph({ contained = false }: { contained?: boolean }) {
           
           // Calculate opacity based on z positions (3D effect)
           const zFactor = (200 - Math.abs(node.z - target.z)) / 200;
-          const opacity = (contained ? 0.4 : 0.3) * zFactor; // Higher opacity for contained
+          // Moderate opacity for subtle mode - higher than before
+          const baseOpacity = subtle ? 0.25 : (contained ? 0.4 : 0.3);
+          const opacity = baseOpacity * zFactor;
           
           // Draw connection
           ctx.beginPath();
@@ -357,6 +388,9 @@ function NetworkGraph({ contained = false }: { contained?: boolean }) {
         }
       }
       
+      // Define edge padding for bounce calculations
+      const edgePadding = contained ? 25 : 40;
+      
       // Then draw nodes
       for (let i = 0; i < nodes.length; i++) {
         const node = nodes[i];
@@ -366,34 +400,69 @@ function NetworkGraph({ contained = false }: { contained?: boolean }) {
         node.y += node.velocity.y;
         node.z += node.velocity.z;
         
-        // Bounce off edges
-        if (node.x < 0 || node.x > canvas.width) node.velocity.x *= -1;
-        if (node.y < 0 || node.y > canvas.height) node.velocity.y *= -1;
-        if (node.z < -100 || node.z > 100) node.velocity.z *= -1;
-        
         // Calculate size based on z position (3D effect)
         const scale = (node.z + 100) / 200; // 0 to 1 based on z (-100 to 100)
         const displayRadius = node.radius * (0.5 + scale * 0.8); // Scale between 50% and 130%
-        const opacity = 0.6 + scale * 0.4; // Higher base opacity
+        // Moderate opacity for subtle mode - higher than before
+        const opacityBase = subtle ? 0.5 : 0.6;
+        const opacity = opacityBase + scale * (subtle ? 0.3 : 0.4);
+        
+        // Calculate glow radius (used for bounce detection)
+        const glowRadius = displayRadius * (subtle ? 1.8 : 2);
+        
+        // Bounce off edges with padding to prevent visual cutoff
+        // For right and bottom edges, include the display radius
+        if (node.x < edgePadding + glowRadius) {
+          node.x = edgePadding + glowRadius;
+          node.velocity.x *= -1;
+        } else if (node.x > canvas.width - edgePadding - glowRadius) {
+          node.x = canvas.width - edgePadding - glowRadius;
+          node.velocity.x *= -1;
+        }
+        
+        if (node.y < edgePadding + glowRadius) {
+          node.y = edgePadding + glowRadius;
+          node.velocity.y *= -1;
+        } else if (node.y > canvas.height - edgePadding - glowRadius) {
+          node.y = canvas.height - edgePadding - glowRadius;
+          node.velocity.y *= -1;
+        }
+        
+        // Z-axis bounce remains the same
+        if (node.z < -100 || node.z > 100) node.velocity.z *= -1;
         
         // Draw node with glow effect
+        // Moderate glow size and intensity for subtle mode
+        const innerGlowRadius = subtle ? displayRadius * 0.4 : displayRadius * 0.5;
+        const outerGlowRadius = subtle ? displayRadius * 1.8 : displayRadius * 2;
+        
         // Outer glow
         const gradient = ctx.createRadialGradient(
-          node.x, node.y, displayRadius * 0.5,
-          node.x, node.y, displayRadius * 2
+          node.x, node.y, innerGlowRadius,
+          node.x, node.y, outerGlowRadius
         );
-        gradient.addColorStop(0, node.color + "80"); // Semi-transparent
-        gradient.addColorStop(1, node.color + "00"); // Transparent
+        
+        // Moderate transparency steps for subtle mode
+        if (subtle) {
+          gradient.addColorStop(0, node.color + "60"); // Slightly more visible
+          gradient.addColorStop(0.7, node.color + "30"); // Moderate transparency
+          gradient.addColorStop(1, node.color + "00");
+        } else {
+          gradient.addColorStop(0, node.color + "80"); // Semi-transparent
+          gradient.addColorStop(1, node.color + "00"); // Transparent
+        }
         
         ctx.beginPath();
-        ctx.arc(node.x, node.y, displayRadius * 2, 0, Math.PI * 2);
+        ctx.arc(node.x, node.y, outerGlowRadius, 0, Math.PI * 2);
         ctx.fillStyle = gradient;
         ctx.fill();
         
         // Main node
         ctx.beginPath();
         ctx.arc(node.x, node.y, displayRadius, 0, Math.PI * 2);
-        ctx.fillStyle = node.color + Math.round(opacity * 255).toString(16).padStart(2, '0');
+        // Adjust opacity value format based on mode
+        const opacityHex = Math.round(opacity * 255).toString(16).padStart(2, '0');
+        ctx.fillStyle = node.color + opacityHex;
         ctx.fill();
       }
       
@@ -411,7 +480,7 @@ function NetworkGraph({ contained = false }: { contained?: boolean }) {
       }
       window.removeEventListener('resize', resizeCanvas);
     };
-  }, [contained]);
+  }, [contained, subtle]);
   
   return <canvas ref={canvasRef} className="w-full h-full" />;
 } 
