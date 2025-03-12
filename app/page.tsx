@@ -1,8 +1,6 @@
 "use client";
-
 import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
-
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [visibleSections, setVisibleSections] = useState<{[key: string]: boolean}>({
@@ -22,7 +20,6 @@ export default function Home() {
   
   const featuresRef = useRef<HTMLElement>(null);
   const ctaRef = useRef<HTMLElement>(null);
-
   // Check if element is in viewport - adjusted for quicker triggering
   const isInViewport = useCallback((element: HTMLElement) => {
     const rect = element.getBoundingClientRect();
@@ -31,8 +28,10 @@ export default function Home() {
       rect.bottom >= 0
     );
   }, []);
-
   // Handle scroll events to check which sections are visible
+
+
+  
   const handleScroll = useCallback(() => {
     if (featuresRef.current) {
       setVisibleSections(prev => ({
@@ -48,7 +47,6 @@ export default function Home() {
       }));
     }
   }, [isInViewport]);
-
   // Handle form input changes - immediate feedback
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -57,7 +55,6 @@ export default function Home() {
       [name]: value
     }));
   };
-
   // Handle form submission - faster processing
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +73,6 @@ export default function Home() {
       }, 3000);
     }, 500);
   };
-
   useEffect(() => {
     setIsLoaded(true);
     setVisibleSections(prev => ({
@@ -93,7 +89,6 @@ export default function Home() {
       window.removeEventListener('scroll', handleScroll);
     };
   }, [handleScroll]);
-
   return (
     <div className="container mx-auto px-4 py-12 relative">
       {/* Hero Section */}
@@ -128,12 +123,10 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       {/* Background network for the rest of the page (more subtle) */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 opacity-30">
         <NetworkGraph contained={false} />
       </div>
-
       {/* Features Section */}
       <section 
         ref={featuresRef} 
@@ -174,7 +167,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       {/* CTA Section */}
       <section 
         ref={ctaRef}
@@ -258,7 +250,6 @@ export default function Home() {
     </div>
   );
 }
-
 // Interactive 3D Network Graph
 function NetworkGraph({ contained = false }: { contained?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
