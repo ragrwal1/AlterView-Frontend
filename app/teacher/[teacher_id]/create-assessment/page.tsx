@@ -1,12 +1,11 @@
 "use client";
 
-import { Inter } from "next/font/google";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { ArrowLeftCircle, Upload, X, FileText, AlertCircle, CheckCircle, FileType } from "lucide-react";
 import { createAssessment } from "@/services/assessmentService";
-
-const inter = Inter({ subsets: ["latin"] });
+import FloatingIcons from "@/components/app/FloatingIcons";
 
 export default function CreateAssessment({
   params,
@@ -15,66 +14,61 @@ export default function CreateAssessment({
 }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [jsonFile, setJsonFile] = useState<File | null>(null);
-  const [mindMapData, setMindMapData] = useState<any>(null);
+  const [courseMaterial, setCourseMaterial] = useState<File | null>(null);
+  const [fileValid, setFileValid] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    setLoaded(true);
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     setFileError(null);
 
     if (!file) {
-      setJsonFile(null);
-      setMindMapData(null);
+      setCourseMaterial(null);
+      setFileValid(false);
       return;
     }
 
-    // Validate file type
-    if (file.type !== "application/json" && !file.name.endsWith(".json")) {
-      setFileError("Please upload a JSON file");
-      setJsonFile(null);
-      setMindMapData(null);
+    // Basic validation - just check if file is too large (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setFileError("File is too large (max 10MB)");
+      setCourseMaterial(null);
+      setFileValid(false);
       return;
     }
 
-    setJsonFile(file);
-
-    // Read and parse the JSON file
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const json = JSON.parse(event.target?.result as string);
-        setMindMapData(json);
-        setFileError(null);
-      } catch (error) {
-        setFileError("Invalid JSON format");
-        setMindMapData(null);
-      }
-    };
-    reader.onerror = () => {
-      setFileError("Error reading file");
-      setMindMapData(null);
-    };
-    reader.readAsText(file);
+    setCourseMaterial(file);
+    setFileValid(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (isSubmitting) return;
+    if (isSubmitting || !title || !description) return;
 
     try {
       setIsSubmitting(true);
 
       // Create assessment using our service
-      const assessmentId = await createAssessment({
+      // File is optional now, only pass it if it exists and is valid
+      const assessmentData: any = {
         title,
         description,
-        mindmap_template: mindMapData,
-      });
+      };
+      
+      // Only include course_material if a valid file exists
+      if (courseMaterial && fileValid) {
+        assessmentData.course_material = courseMaterial;
+      }
+
+      const assessmentId = await createAssessment(assessmentData);
 
       // Redirect to the assessment details page
       router.push(`/teacher/${params.teacher_id}/assessment/${assessmentId}`);
@@ -87,144 +81,210 @@ export default function CreateAssessment({
   };
 
   const clearFileSelection = () => {
-    setJsonFile(null);
-    setMindMapData(null);
+    setCourseMaterial(null);
+    setFileValid(false);
     setFileError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
 
+  // Helper function to format file size
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' bytes';
+    else if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    else return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  };
+
+  // Function to get file icon based on mime type
+  const getFileIcon = (file: File) => {
+    const type = file.type.split('/')[0];
+    switch (type) {
+      case 'image':
+        return <FileType className="h-8 w-8 text-blue-500 mb-2" />;
+      case 'application':
+        return <FileText className="h-8 w-8 text-green-500 mb-2" />;
+      case 'text':
+        return <FileText className="h-8 w-8 text-purple-500 mb-2" />;
+      default:
+        return <FileText className="h-8 w-8 text-gray-500 mb-2" />;
+    }
+  };
+
   return (
-    <main
-      className={`flex min-h-screen flex-col items-center p-12 ${inter.className}`}
-    >
-      <div className="w-full max-w-2xl">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Create New Assessment</h1>
-          <Link
-            href={`/teacher/${params.teacher_id}`}
-            className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
-          >
-            Back to Dashboard
-          </Link>
+    <div className="relative min-h-[calc(100vh-10rem)] px-4 py-8 overflow-hidden">
+      {/* Background animation */}
+      <FloatingIcons />
+      
+      {/* Main container */}
+      <div className="container mx-auto max-w-2xl relative z-10">
+        {/* Header section */}
+        <div 
+          className={`transition-all duration-700 ease-out ${
+            loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}
+        >
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+            <div>
+              <h1 className="text-4xl font-semibold text-gray-900 mb-3 animate-fadeIn">
+                Create New Assessment
+              </h1>
+              <p className="text-gray-500 text-lg animate-fadeIn" style={{ animationDelay: '100ms' }}>
+                Design an interview assessment for your students
+              </p>
+            </div>
+            
+            <Link
+              href={`/teacher/${params.teacher_id}`}
+              className="inline-flex items-center p-2.5 text-alterview-indigo hover:text-alterview-violet transition-colors rounded-xl hover:bg-gray-50 animate-fadeIn"
+              style={{ animationDelay: '200ms' }}
+            >
+              <ArrowLeftCircle className="h-5 w-5" />
+              <span className="ml-2">Back</span>
+            </Link>
+          </div>
         </div>
 
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label
-                className="block text-gray-700 text-sm font-bold mb-2"
-                htmlFor="title"
-              >
-                Assessment Title
-              </label>
-              <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="title"
-                type="text"
-                placeholder="Enter assessment title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-              />
-            </div>
+        {/* Form Card */}
+        <div 
+          className={`bg-white/90 backdrop-blur-md rounded-2xl mb-6 shadow-apple animate-scaleIn overflow-hidden transition-all duration-700 ease-out ${
+            loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}
+          style={{ animationDelay: '100ms' }}
+        >
+          <form onSubmit={handleSubmit} className="p-8">
+            <div className="space-y-6">
+              <div>
+                <label
+                  className="block text-gray-700 font-medium mb-2"
+                  htmlFor="title"
+                >
+                  Assessment Title
+                </label>
+                <input
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-alterview-indigo focus:outline-none focus:ring-1 focus:ring-alterview-indigo/20 transition-all"
+                  id="title"
+                  type="text"
+                  placeholder="Enter a descriptive title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                />
+              </div>
 
-            <div>
-              <label
-                className="block text-gray-700 text-sm font-bold mb-2"
-                htmlFor="description"
-              >
-                Description
-              </label>
-              <textarea
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="description"
-                placeholder="Enter assessment description"
-                rows={4}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-              />
-            </div>
+              <div>
+                <label
+                  className="block text-gray-700 font-medium mb-2"
+                  htmlFor="description"
+                >
+                  Description
+                </label>
+                <textarea
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-alterview-indigo focus:outline-none focus:ring-1 focus:ring-alterview-indigo/20 transition-all"
+                  id="description"
+                  placeholder="Provide details about this assessment"
+                  rows={4}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  required
+                />
+              </div>
 
-            <div>
-              <label className="block text-gray-700 text-sm font-bold mb-2">
-                Mind Map Template (JSON)
-              </label>
-              <div className="flex flex-col space-y-2">
-                <div className="flex items-center space-x-2">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".json,application/json"
-                    onChange={handleFileChange}
-                    className="hidden"
-                    id="json-upload"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                  >
-                    Upload JSON File
-                  </button>
-                  {jsonFile && (
-                    <button
-                      type="button"
-                      onClick={clearFileSelection}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      Clear
-                    </button>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">
+                  Course Materials <span className="text-sm font-normal text-gray-500">(Optional)</span>
+                </label>
+                <div className="space-y-4">
+                  {/* File upload area */}
+                  <div className={`border-2 border-dashed ${fileError ? 'border-red-200 bg-red-50' : courseMaterial ? 'border-green-200 bg-green-50' : 'border-gray-200'} rounded-xl p-6 text-center transition-colors`}>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      onChange={handleFileChange}
+                      className="hidden"
+                      id="file-upload"
+                    />
+                    
+                    {!courseMaterial ? (
+                      <div>
+                        <Upload className="h-10 w-10 mx-auto mb-3 text-gray-400" />
+                        <p className="mb-2 text-gray-600">Drag and drop your course materials, or</p>
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="inline-flex items-center px-4 py-2 text-sm font-medium text-alterview-indigo border border-alterview-indigo/30 rounded-xl hover:bg-alterview-indigo/5 transition-colors"
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          Browse files
+                        </button>
+                        <p className="mt-3 text-xs text-gray-500">Supports PDFs, documents, images, and more (max 10MB)</p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center">
+                        {getFileIcon(courseMaterial)}
+                        <p className="text-gray-700 font-medium mb-1 break-all">
+                          {courseMaterial.name}
+                        </p>
+                        <p className="text-sm text-gray-500 mb-3">
+                          {formatFileSize(courseMaterial.size)}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={clearFileSelection}
+                          className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+                        >
+                          <X className="h-3.5 w-3.5 mr-1" />
+                          Remove
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* File error message */}
+                  {fileError && (
+                    <div className="text-sm text-red-600 bg-red-50 py-2 px-3 rounded-lg flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                      {fileError}
+                    </div>
+                  )}
+
+                  {/* File success message */}
+                  {courseMaterial && fileValid && (
+                    <div className="text-sm text-green-600 bg-green-50 py-2 px-3 rounded-lg flex items-center">
+                      <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                      File uploaded successfully
+                    </div>
                   )}
                 </div>
-
-                <div className="text-sm text-gray-600">
-                  <a
-                    href="/mindmap-template-example.json"
-                    download
-                    className="text-blue-600 hover:text-blue-800 underline"
-                  >
-                    Download example template
-                  </a>
-                </div>
-
-                {jsonFile && (
-                  <div className="text-sm text-gray-600 bg-gray-100 p-2 rounded">
-                    Selected file: {jsonFile.name} (
-                    {(jsonFile.size / 1024).toFixed(2)} KB)
-                  </div>
-                )}
-
-                {fileError && (
-                  <div className="text-sm text-red-600">{fileError}</div>
-                )}
-
-                {mindMapData && (
-                  <div className="text-sm text-green-600">
-                    ✓ Valid JSON mind map template loaded
-                  </div>
-                )}
               </div>
-            </div>
 
-            <div className="flex justify-end">
-              <button
-                className={`${
-                  isSubmitting
-                    ? "bg-gray-500 cursor-not-allowed"
-                    : "bg-green-600 hover:bg-green-700"
-                } text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline`}
-                type="submit"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Creating..." : "Create Assessment"}
-              </button>
+              <div className="pt-4">
+                <button
+                  className={`w-full py-3.5 rounded-xl text-white font-medium text-lg transition-all duration-300 button-shine
+                  ${title && description 
+                    ? 'bg-alterview-gradient hover:shadow-md' 
+                    : 'bg-gray-300 cursor-not-allowed'}`}
+                  type="submit"
+                  disabled={isSubmitting || !title || !description || (courseMaterial && !fileValid)}
+                >
+                  {isSubmitting ? "Creating..." : "Create Assessment"}
+                </button>
+              </div>
             </div>
           </form>
         </div>
+        
+        {/* Back link */}
+        <div className="text-center animate-fadeIn" style={{ animationDelay: '300ms' }}>
+          <Link
+            href={`/teacher/${params.teacher_id}`}
+            className="inline-flex items-center justify-center text-alterview-indigo hover:text-alterview-violet transition-colors apple-hover"
+          >
+            <ArrowLeftCircle className="h-4 w-4 mr-1" />
+            <span>Back to dashboard</span>
+          </Link>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }
