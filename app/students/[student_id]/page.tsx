@@ -745,10 +745,6 @@ export default function StudentDashboard({
                           </div>
                           <span className="text-sm text-gray-500">{concept.mastery}%</span>
                         </div>
-                        
-                        <button className="px-4 py-1.5 text-sm bg-white border border-alterview-indigo/30 text-alterview-indigo rounded-lg hover:bg-alterview-indigo/5 transition-colors">
-                          Practice Now
-                        </button>
                       </div>
                     </div>
                   </div>
