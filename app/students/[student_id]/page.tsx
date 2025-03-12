@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeftCircle, BookOpen, ChevronRight, LogOut, History, ExternalLink, FileText, Calendar, ChevronDown } from "lucide-react";
 import FloatingIcons from "@/components/app/FloatingIcons";
+import { getStudentName } from "@/services/supabaseService";
 
 // Mock data for assessments
 const mockAssessments = [
@@ -17,8 +18,8 @@ const mockAssessments = [
   },
   { 
     id: "2", 
-    title: "Mathematics Assessment",
-    course: "MATH 241",
+    title: "The Rennissance Quiz",
+    course: "HIST 241",
     dueDate: "March 18, 2023",
     status: "Not Started"
   },
@@ -51,10 +52,21 @@ export default function StudentDashboard({
   const [assessmentResults, setAssessmentResults] = useState<AssessmentResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [studentName, setStudentName] = useState<string | null>(null);
   const [showAllResults, setShowAllResults] = useState(false);
 
   useEffect(() => {
     setLoaded(true);
+    
+    // Fetch student name
+    const fetchStudentName = async () => {
+      try {
+        const name = await getStudentName(parseInt(params.student_id));
+        setStudentName(name);
+      } catch (err) {
+        console.error("Error fetching student name:", err);
+      }
+    };
     
     // Fetch assessment results
     const fetchAssessmentResults = async () => {
@@ -79,6 +91,7 @@ export default function StudentDashboard({
       }
     };
     
+    fetchStudentName();
     fetchAssessmentResults();
   }, [params.student_id]);
 
@@ -114,7 +127,7 @@ export default function StudentDashboard({
         >
           <div className="mb-8">
             <h1 className="text-4xl font-semibold text-gray-900 mb-3 animate-fadeIn">
-              Welcome, Student
+              Welcome, {studentName || 'Student'}
             </h1>
             <div className="flex items-center space-x-4">
               <p className="text-gray-500 text-lg animate-fadeIn" style={{ animationDelay: '100ms' }}>

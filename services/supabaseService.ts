@@ -203,3 +203,19 @@ export async function getMindmap(id: number) {
   
   return data?.mindmap_template;
 }
+
+//getStudentName from Student table using id, return student name
+export async function getStudentName(id: number) {
+  const { data, error } = await supabase
+    .from('Student')
+    .select('name')
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    console.error('Error fetching student name:', error);
+    return null;
+  }
+  
+  return data?.name;
+}
