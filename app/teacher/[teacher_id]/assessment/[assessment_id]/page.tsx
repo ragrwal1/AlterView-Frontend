@@ -8,6 +8,14 @@ import {
   updateAssessmentMindMap,
 } from "@/services/assessmentService";
 import { useRouter } from "next/navigation";
+import FloatingIcons from "@/components/app/FloatingIcons";
+import {
+  ArrowLeftCircle,
+  BookOpen,
+  Users,
+  Activity,
+  Edit3,
+} from "lucide-react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,6 +34,11 @@ export default function AssessmentReview({
   params: { teacher_id: string; assessment_id: string };
 }) {
   const router = useRouter();
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    setLoaded(true);
+  }, []);
 
   const handleEditMindMap = () => {
     router.push(
@@ -34,91 +47,141 @@ export default function AssessmentReview({
   };
 
   return (
-    <main
-      className={`flex min-h-screen flex-col items-center p-12 ${inter.className}`}
-    >
-      <div className="w-full max-w-4xl">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">Assessment Review</h1>
-            <p className="text-slate-600">
-              Assessment ID: {params.assessment_id}
-            </p>
-          </div>
-          <Link
-            href={`/teacher/${params.teacher_id}`}
-            className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
-          >
-            Back to Dashboard
-          </Link>
-        </div>
+    <div className="relative min-h-[calc(100vh-10rem)] px-4 py-8 overflow-hidden">
+      {/* Background animation */}
+      <FloatingIcons />
 
-        <div className="bg-white shadow-md rounded-lg p-6 mb-8">
-          <div className="flex justify-between items-start mb-4">
-            <h2 className="text-xl font-semibold">Assessment Details</h2>
-            <button
-              onClick={handleEditMindMap}
-              className="px-4 py-2 rounded-lg text-white bg-purple-600 hover:bg-purple-700 transition-colors"
-            >
-              Edit Mind-map
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+      {/* Main container */}
+      <div className="container mx-auto max-w-4xl relative z-10">
+        {/* Header section with title */}
+        <div
+          className={`transition-all duration-700 ease-out ${
+            loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
+        >
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
             <div>
-              <p className="text-sm text-gray-500">Title</p>
-              <p className="font-medium">
-                Data Structures and Algorithms (CSE 310)
+              <h1 className="text-4xl font-semibold text-gray-900 mb-3 animate-fadeIn">
+                Assessment Review
+              </h1>
+              <p
+                className="text-gray-500 text-lg animate-fadeIn"
+                style={{ animationDelay: "100ms" }}
+              >
+                Assessment ID: {params.assessment_id}
               </p>
             </div>
-            <div>
-              <p className="text-sm text-gray-500">Created</p>
-              <p className="font-medium">June 15, 2023</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Total Students</p>
-              <p className="font-medium">{mockStudents.length}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Completion Rate</p>
-              <p className="font-medium">
-                {Math.round(
-                  (mockStudents.filter((s) => s.status === "Completed").length /
-                    mockStudents.length) *
-                    100
-                )}
-                %
-              </p>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleEditMindMap}
+                className="inline-flex items-center px-5 py-2.5 bg-alterview-gradient text-white rounded-xl hover:shadow-md transition-all duration-300 animate-fadeIn"
+                style={{ animationDelay: "150ms" }}
+              >
+                <Edit3 className="h-4 w-4 mr-2" />
+                <span>Edit Mind-map</span>
+              </button>
+
+              <Link
+                href={`/teacher/${params.teacher_id}`}
+                className="inline-flex items-center p-2.5 text-alterview-indigo hover:text-alterview-violet transition-colors rounded-xl hover:bg-gray-50 animate-fadeIn"
+                style={{ animationDelay: "200ms" }}
+              >
+                <ArrowLeftCircle className="h-5 w-5" />
+              </Link>
             </div>
           </div>
         </div>
 
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">Student Results</h2>
+        {/* Assessment Details section */}
+        <div
+          className="bg-white/90 backdrop-blur-md rounded-2xl mb-6 shadow-apple animate-scaleIn overflow-hidden transition-all duration-700 ease-out"
+          style={{ animationDelay: "100ms" }}
+        >
+          {/* Section header */}
+          <div className="px-8 py-6 border-b border-gray-100 flex items-center">
+            <BookOpen className="h-5 w-5 text-alterview-indigo mr-2" />
+            <h2 className="text-xl font-semibold text-gray-800">
+              Assessment Details
+            </h2>
+          </div>
+
+          <div className="p-8">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-500">Title</p>
+                <p className="font-medium">
+                  Data Structures and Algorithms (CSE 310)
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Created</p>
+                <p className="font-medium">June 15, 2023</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Total Students</p>
+                <p className="font-medium">{mockStudents.length}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Completion Rate</p>
+                <p className="font-medium">
+                  {Math.round(
+                    (mockStudents.filter((s) => s.status === "Completed")
+                      .length /
+                      mockStudents.length) *
+                      100
+                  )}
+                  %
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Student Results section */}
+        <div
+          className="bg-white/90 backdrop-blur-md rounded-2xl shadow-apple animate-scaleIn overflow-hidden transition-all duration-700 ease-out"
+          style={{ animationDelay: "200ms" }}
+        >
+          {/* Section header */}
+          <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
+            <div className="flex items-center">
+              <Users className="h-5 w-5 text-alterview-indigo mr-2" />
+              <h2 className="text-xl font-semibold text-gray-800">
+                Student Results
+              </h2>
+            </div>
+            <span className="text-sm text-gray-500">
+              {mockStudents.length} total
+            </span>
+          </div>
 
           <div className="overflow-x-auto">
-            <table className="min-w-full bg-white">
+            <table className="min-w-full bg-white/0">
               <thead>
-                <tr className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
-                  <th className="py-3 px-6 text-left">Student</th>
+                <tr className="bg-gray-50/80 text-gray-600 uppercase text-sm leading-normal">
+                  <th className="py-3 px-8 text-left">Student</th>
                   <th className="py-3 px-6 text-left">Status</th>
                   <th className="py-3 px-6 text-left">Score</th>
-                  <th className="py-3 px-6 text-right">Actions</th>
+                  <th className="py-3 px-8 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="text-gray-600 text-sm">
-                {mockStudents.map((student) => (
+                {mockStudents.map((student, index) => (
                   <tr
                     key={student.id}
-                    className="border-b border-gray-200 hover:bg-gray-50"
+                    className="border-b border-gray-100 hover:bg-gray-50/80 transition-colors"
+                    style={{ animationDelay: `${250 + index * 50}ms` }}
                   >
-                    <td className="py-3 px-6 text-left whitespace-nowrap">
-                      <div className="font-medium">{student.name}</div>
+                    <td className="py-4 px-8 text-left">
+                      <div className="font-medium text-gray-800">
+                        {student.name}
+                      </div>
                       <div className="text-xs text-gray-500">
                         ID: {student.id}
                       </div>
                     </td>
-                    <td className="py-3 px-6 text-left">
+                    <td className="py-4 px-6 text-left">
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
                           student.status === "Completed"
@@ -131,13 +194,20 @@ export default function AssessmentReview({
                         {student.status}
                       </span>
                     </td>
-                    <td className="py-3 px-6 text-left">
-                      {student.score !== null ? `${student.score}/100` : "-"}
+                    <td className="py-4 px-6 text-left">
+                      {student.score !== null ? (
+                        <div className="flex items-center">
+                          <Activity className="h-3.5 w-3.5 text-alterview-indigo mr-1" />
+                          <span>{student.score}/100</span>
+                        </div>
+                      ) : (
+                        "-"
+                      )}
                     </td>
-                    <td className="py-3 px-6 text-right">
+                    <td className="py-4 px-8 text-right">
                       <Link
                         href={`/assessment/${student.id}/${params.assessment_id}`}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-alterview-indigo hover:text-alterview-violet transition-colors font-medium"
                       >
                         View Interview
                       </Link>
@@ -149,6 +219,6 @@ export default function AssessmentReview({
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
