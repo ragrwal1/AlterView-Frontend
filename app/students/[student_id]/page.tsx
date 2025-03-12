@@ -221,13 +221,22 @@ export default function StudentDashboard({
                         <span>Due: {assessment.dueDate}</span>
                       </div>
                     </div>
-                    <Link
-                      href={`/assessment/${params.student_id}/${assessment.id}`}
-                      className="flex items-center px-5 py-2.5 bg-alterview-gradient text-white rounded-xl hover:shadow-md transition-all duration-300 group"
-                    >
-                      <span>Start</span>
-                      <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
-                    </Link>
+                    <div className="flex items-center space-x-3">
+                      <Link
+                        href={`/student/${params.student_id}/practice/${assessment.id}`}
+                        className="flex items-center px-5 py-2.5 bg-white border border-alterview-indigo/30 text-alterview-indigo rounded-xl hover:bg-alterview-indigo/5 transition-all duration-300 group"
+                      >
+                        <span>Practice</span>
+                        <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
+                      </Link>
+                      <Link
+                        href={`/assessment/${params.student_id}/${assessment.id}`}
+                        className="flex items-center px-5 py-2.5 bg-alterview-gradient text-white rounded-xl hover:shadow-md transition-all duration-300 group"
+                      >
+                        <span>Start</span>
+                        <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
+                      </Link>
+                    </div>
                   </div>
                 </div>
               ))}
