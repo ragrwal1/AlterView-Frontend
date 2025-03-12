@@ -5,6 +5,27 @@ import { useEffect, useState } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 
+// Add this custom CSS for the scrollbar
+const customScrollbarStyles = `
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, rgba(79, 70, 229, 0.6), rgba(59, 130, 246, 0.6));
+    border-radius: 10px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, rgba(79, 70, 229, 0.8), rgba(59, 130, 246, 0.8));
+  }
+`;
+
 interface AssessmentResult {
   id: number;
   created_at: string;
@@ -63,28 +84,38 @@ export default function StudentResultsPage({ params }: { params: { student_id: s
 
   return (
     <main
-      className={`flex min-h-screen flex-col items-center justify-between p-12 ${inter.className}`}
+      className={`flex min-h-screen flex-col items-center justify-start p-6 ${inter.className}`}
     >
-      <div className="w-full max-w-4xl relative">
-        {/* Apple-style purple and blue inward gradient effect */}
-        <div className="absolute inset-0 rounded-3xl pointer-events-none" style={{ 
-          boxShadow: `inset 0 0 80px 30px rgba(79, 70, 229, 0.15), inset 0 0 40px 20px rgba(59, 130, 246, 0.15)`,
-          borderRadius: 'inherit'
-        }}></div>
-        
-        <div className="backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden border border-white/20 p-8 mb-8">
-          <div className="text-center">
-            {/* Animated indicator */}
-            <div className="flex justify-center items-center space-x-2 mb-4">
-              <div className="w-3 h-3 rounded-full bg-indigo-600 animate-pulse"></div>
-              <span className="text-gray-700 font-medium">AlterView</span>
-            </div>
-            
-            {/* Gradient title */}
-            <h1 className="text-5xl font-extrabold mb-6 bg-gradient-to-r from-indigo-600 to-blue-500 text-transparent bg-clip-text tracking-tight">
-              Assessment Results
-            </h1>
-            
+      {/* Custom scrollbar styles */}
+      <style jsx global>{customScrollbarStyles}</style>
+      
+      {/* Header section with title */}
+      <div className="w-full max-w-[95%] mb-0">
+        <div className="text-center">
+          {/* Animated indicator */}
+          <div className="flex justify-center items-center space-x-2 mb-1">
+            <div className="w-3 h-3 rounded-full bg-indigo-600 animate-pulse"></div>
+            <span className="text-gray-700 font-medium">AlterView</span>
+          </div>
+          
+          {/* Gradient title */}
+          <h1 className="text-4xl font-extrabold mb-2 bg-gradient-to-r from-indigo-600 to-blue-500 text-transparent bg-clip-text tracking-tight">
+            Assessment Results
+          </h1>
+        </div>
+      </div>
+
+      {/* Two-column layout container */}
+      <div className="w-full max-w-[95%] flex flex-col md:flex-row gap-8 mt-2">
+        {/* Left column - Assessment Results */}
+        <div className="w-full md:w-1/2 relative">
+          {/* Apple-style purple and blue inward gradient effect */}
+          <div className="absolute inset-0 rounded-3xl pointer-events-none" style={{ 
+            boxShadow: `inset 0 0 80px 30px rgba(79, 70, 229, 0.15), inset 0 0 40px 20px rgba(59, 130, 246, 0.15)`,
+            borderRadius: 'inherit'
+          }}></div>
+          
+          <div className="backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden border-0 p-8 h-full">
             {loading ? (
               <div className="flex flex-col items-center justify-center py-6">
                 <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
@@ -97,7 +128,7 @@ export default function StudentResultsPage({ params }: { params: { student_id: s
             ) : (
               <div className="transition-all duration-300 ease-in-out">
                 {/* Results card */}
-                <div className="bg-white/80 backdrop-blur-md rounded-xl p-6 shadow-md border border-gray-100 mt-4">
+                <div className="bg-white/80 backdrop-blur-md rounded-xl p-6 shadow-md border border-gray-100">
                   <div className="flex items-center justify-center mb-4">
                     <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -136,7 +167,7 @@ export default function StudentResultsPage({ params }: { params: { student_id: s
                   {result?.transcript && (
                     <div className="mt-6">
                       <h4 className="text-md font-semibold text-gray-700 mb-2">Interview Transcript</h4>
-                      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-left">
+                      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-left h-80 overflow-y-auto custom-scrollbar">
                         <div className="space-y-4">
                           {parsedTranscript.map((line, index) => (
                             <div key={index} className={`flex ${line.speaker === 'USER' ? 'justify-end' : 'justify-start'}`}>
@@ -154,21 +185,30 @@ export default function StudentResultsPage({ params }: { params: { student_id: s
                       </div>
                     </div>
                   )}
-                  
-                  {/* Mind Map Section (if available) */}
-                  {result?.mindmap && (
-                    <div className="mt-6">
-                      <h4 className="text-md font-semibold text-gray-700 mb-2">Mind Map</h4>
-                      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                        <pre className="text-xs overflow-auto text-left">
-                          {JSON.stringify(result.mindmap, null, 2)}
-                        </pre>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Right column - Mind Map */}
+        <div className="w-full md:w-1/2 relative">
+          {/* Apple-style purple and blue inward gradient effect */}
+          <div className="absolute inset-0 rounded-3xl pointer-events-none" style={{ 
+            boxShadow: `inset 0 0 80px 30px rgba(79, 70, 229, 0.15), inset 0 0 40px 20px rgba(59, 130, 246, 0.15)`,
+            borderRadius: 'inherit'
+          }}></div>
+          
+          <div className="backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden border-0 p-8 h-full">
+            <div className="bg-white/80 backdrop-blur-md rounded-xl p-6 shadow-md border border-gray-100 h-full flex flex-col items-center justify-center">
+              <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-semibold text-gray-800 mb-2">Mind Map</h3>
+              <p className="text-gray-500 text-center">Mind map visualization will be displayed here.</p>
+            </div>
           </div>
         </div>
       </div>
