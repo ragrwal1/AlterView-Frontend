@@ -40,7 +40,6 @@ interface AssessmentResult {
   student_id: number;
   voice_recording_id: number | null;
   transcript_id: number | null;
-  mindmap: Record<string, any>;
 }
 
 export default function StudentDashboard({
@@ -248,12 +247,6 @@ export default function StudentDashboard({
                           <Calendar className="h-3.5 w-3.5 mr-1 text-gray-400" />
                           <span>{formatDate(result.created_at)}</span>
                         </div>
-                        {result.mindmap && Object.keys(result.mindmap).length > 0 && (
-                          <>
-                            <span className="h-1 w-1 rounded-full bg-gray-300"></span>
-                            <span>Mindmap available</span>
-                          </>
-                        )}
                       </div>
                     </div>
                     <Link
