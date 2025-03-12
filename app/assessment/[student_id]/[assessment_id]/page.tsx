@@ -69,9 +69,9 @@ export default function AssessmentPage({ params }: { params: { student_id: strin
               <span className="text-gray-700 font-medium">AlterView</span>
             </div>
             
-            {/* Gradient title */}
+            {/* Gradient title - now showing assessment name with previous portal styling */}
             <h1 className="text-5xl font-extrabold mb-6 bg-gradient-to-r from-indigo-600 to-blue-500 text-transparent bg-clip-text tracking-tight">
-              Assessment Portal
+              {assessment?.name || 'Loading Assessment...'}
             </h1>
             
             {loading ? (
@@ -85,8 +85,9 @@ export default function AssessmentPage({ params }: { params: { student_id: strin
               </div>
             ) : (
               <div className="transition-all duration-300 ease-in-out">
-                <p className="text-2xl font-bold mb-4 bg-gradient-to-r from-indigo-500 to-blue-600 text-transparent bg-clip-text">
-                  {assessment?.name}
+                {/* Assessment Portal title - now with more blue in the gradient */}
+                <p className="text-2xl font-bold mb-4 bg-gradient-to-r from-blue-500 to-blue-700 text-transparent bg-clip-text">
+                  Assessment Portal
                 </p>
                 
                 {/* Student info card */}
