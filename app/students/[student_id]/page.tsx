@@ -65,7 +65,11 @@ export default function StudentDashboard({
         }
         
         const data = await response.json();
-        setAssessmentResults(data);
+        // Sort assessment results from latest to oldest based on created_at date
+        const sortedData = [...data].sort((a, b) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        setAssessmentResults(sortedData);
       } catch (err) {
         console.error("Error fetching assessment results:", err);
         setError(err instanceof Error ? err.message : "Failed to fetch assessment results");
@@ -250,7 +254,7 @@ export default function StudentDashboard({
                       </div>
                     </div>
                     <Link
-                      href={`/assessment-result/${params.student_id}/${result.id}`}
+                      href={`/student/${params.student_id}/results/${result.id}`}
                       className="flex items-center px-4 py-2 text-alterview-indigo border border-alterview-indigo/30 rounded-xl hover:bg-alterview-indigo/5 transition-colors group"
                     >
                       <FileText className="h-4 w-4 mr-1" />
