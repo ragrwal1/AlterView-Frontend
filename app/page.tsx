@@ -109,7 +109,7 @@ export default function Home() {
               
               {/* Teacher Portal button */}
               <Link
-                href="/teacher-login"
+                href="/teacher-disabled"
                 className="px-8 py-3 border-2 border-alterview-indigo text-alterview-indigo hover:bg-alterview-indigo hover:text-white rounded-xl font-medium transition-colors duration-200 text-center active:scale-95 transform w-full"
               >
                 Teacher Portal
