@@ -17,20 +17,27 @@ MESSAGES=(
   "🌟 This is my best work yet"
 )
 
-# Get a random message from the array
-RANDOM_INDEX=$((RANDOM % ${#MESSAGES[@]}))
-COMMIT_MESSAGE="${MESSAGES[$RANDOM_INDEX]}"
+# Run npm build first to check for errors
+echo "Running npm build to check for errors..."
+if npm run build; then
+  echo "Build successful! Proceeding with commit..."
+  
+  # Get a random message from the array
+  RANDOM_INDEX=$((RANDOM % ${#MESSAGES[@]}))
+  COMMIT_MESSAGE="${MESSAGES[$RANDOM_INDEX]}"
 
-# Add all changes
-git add .
+  # Add all changes
+  git add .
 
-# Commit with the random message
-git commit -m "$COMMIT_MESSAGE"
+  # Commit with the random message
+  git commit -m "$COMMIT_MESSAGE"
 
-git push
+  # Push to remote
+  git push
 
-# Display the commit message that was used
-echo "Committed with message: $COMMIT_MESSAGE"
-
-# Optional: Push to remote (uncomment if you want automatic pushing)
-# git push 
+  # Display the commit message that was used
+  echo "Committed with message: $COMMIT_MESSAGE"
+else
+  echo "Build failed! Fix the errors before committing."
+  exit 1
+fi 

@@ -83,12 +83,12 @@ function StudentLoginForm() {
         {/* Heading - larger and more prominent */}
         <div className="text-center mb-10">
           <h1 className="text-4xl font-semibold text-gray-900 mb-4 animate-fadeIn">
-            {isDemo ? 'AlterView Demo Experience' : 'Welcome to AlterView'}
+            {isDemo ? 'AlterView Demo Experience' : 'Welcome to the AlterView Demo!'}
           </h1>
           <p className="text-gray-500 text-lg animate-fadeIn" style={{ animationDelay: '100ms' }}>
             {isDemo 
               ? 'Experience our AI-powered assessment platform' 
-              : 'Sign in with your student ID'}
+              : 'Hit sign in with our pre-filled Demo ID: 654321'}
           </p>
         </div>
 
