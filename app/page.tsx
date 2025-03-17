@@ -59,7 +59,7 @@ export default function Home() {
   return (
     <div className="container mx-auto px-4 py-12 relative">
       {/* Hero Section - no top banner anymore */}
-      <section className="flex flex-col md:flex-row items-center justify-between mb-40 min-h-[80vh] relative z-10">
+      <section className="flex flex-col md:flex-row items-center justify-between mb-40 min-h-[80vh] relative z-50">
         <div
           className={`md:w-2/3 mb-10 md:mb-0 transition-all duration-500 ${
             isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"

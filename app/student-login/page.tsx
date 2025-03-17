@@ -96,6 +96,7 @@ function StudentLoginForm() {
               ? 'Experience our AI-powered assessment platform' 
               : 'Hit sign in with our pre-filled Demo ID: 654321'}
           </p>
+          <p className="text-gray-500 text-lg animate-fadeIn" style={{ animationDelay: '100ms' }}> Desktop Recommended </p>
         </div>
 
         {/* Demo Badge */}
