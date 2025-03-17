@@ -2,13 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import FloatingIcons from "@/components/app/FloatingIcons";
 import { AppleInput } from "@/components/app/AppleInput";
 
-export default function StudentLogin() {
+// Create a client component that uses useSearchParams
+function StudentLoginForm() {
   const [studentId, setStudentId] = useState("");
   const [error, setError] = useState("");
   const [loaded, setLoaded] = useState(false);
@@ -21,9 +22,11 @@ export default function StudentLogin() {
     setLoaded(true);
     
     // Check if studentId parameter exists in the URL
-    const studentIdParam = searchParams.get('studentId');
-    if (studentIdParam) {
-      setStudentId(studentIdParam);
+    if (searchParams) {
+      const studentIdParam = searchParams.get('studentId');
+      if (studentIdParam) {
+        setStudentId(studentIdParam);
+      }
     }
   }, [searchParams]);
 
@@ -141,5 +144,27 @@ export default function StudentLogin() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Create a loading fallback component
+function StudentLoginLoading() {
+  return (
+    <div className="flex items-center justify-center min-h-[calc(100vh-8rem)]">
+      <div className="animate-pulse text-center">
+        <div className="h-24 w-24 bg-gray-200 rounded-full mx-auto mb-6"></div>
+        <div className="h-8 w-64 bg-gray-200 rounded mx-auto mb-4"></div>
+        <div className="h-4 w-48 bg-gray-200 rounded mx-auto"></div>
+      </div>
+    </div>
+  );
+}
+
+// Main component that wraps the form with Suspense
+export default function StudentLogin() {
+  return (
+    <Suspense fallback={<StudentLoginLoading />}>
+      <StudentLoginForm />
+    </Suspense>
   );
 } 
