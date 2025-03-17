@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import FloatingIcons from "@/components/app/FloatingIcons";
 import { AppleInput } from "@/components/app/AppleInput";
@@ -12,12 +12,24 @@ export default function StudentLogin() {
   const [studentId, setStudentId] = useState("");
   const [error, setError] = useState("");
   const [loaded, setLoaded] = useState(false);
+  const [isDemo, setIsDemo] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Animation on page load
   useEffect(() => {
     setLoaded(true);
-  }, []);
+    
+    // Check if the demo parameter is present in the URL
+    if (searchParams) {
+      const demoParam = searchParams.get('demo');
+      if (demoParam === 'true') {
+        setIsDemo(true);
+        // Set a demo student ID
+        setStudentId("demo-student-123");
+      }
+    }
+  }, [searchParams]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,9 +40,13 @@ export default function StudentLogin() {
       return;
     }
     
-    // Here you would typically validate the student ID against your backend
-    // For now, we'll just navigate to the student dashboard
-    router.push(`/students/${studentId}`);
+    // For demo users, navigate to a specific assessment
+    if (isDemo) {
+      router.push(`/assessment/${studentId}/1`);  // Demo assessment ID is 1
+    } else {
+      // Normal user flow - navigate to student dashboard
+      router.push(`/students/${studentId}`);
+    }
   };
 
   return (
@@ -44,6 +60,14 @@ export default function StudentLogin() {
           loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}
       >
+        {/* Back to home button */}
+        <div className="absolute -top-16 left-0">
+          <Link href="/" className="text-gray-500 hover:text-gray-700 flex items-center transition-colors">
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            <span>Back to home</span>
+          </Link>
+        </div>
+      
         {/* Top logo section */}
         <div className="flex justify-center mb-6">
           <div className="relative h-24 w-24 animate-float">
@@ -59,11 +83,28 @@ export default function StudentLogin() {
         
         {/* Heading - larger and more prominent */}
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-semibold text-gray-900 mb-4 animate-fadeIn">Welcome to AlterView</h1>
+          <h1 className="text-4xl font-semibold text-gray-900 mb-4 animate-fadeIn">
+            {isDemo ? 'AlterView Demo Experience' : 'Welcome to AlterView'}
+          </h1>
           <p className="text-gray-500 text-lg animate-fadeIn" style={{ animationDelay: '100ms' }}>
-            Sign in with your student ID
+            {isDemo 
+              ? 'Experience our AI-powered assessment platform' 
+              : 'Sign in with your student ID'}
           </p>
         </div>
+
+        {/* Demo Badge */}
+        {isDemo && (
+          <div className="bg-gradient-to-r from-yellow-400 to-amber-500 text-white p-4 rounded-xl mb-6 shadow-md">
+            <div className="flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <p className="font-medium">Demo Mode Active</p>
+            </div>
+            <p className="text-sm mt-1 text-white/90">You're trying our demo with a pre-filled student ID.</p>
+          </div>
+        )}
 
         {/* Login Form - clean white card with subtle shadow - made taller */}
         <div className="bg-white/90 backdrop-blur-md rounded-2xl px-8 pt-10 pb-10 mb-6 shadow-apple animate-scaleIn">
@@ -80,32 +121,27 @@ export default function StudentLogin() {
               error={error}
               showFocusEffect={true}
               className="text-gray-800 text-lg"
+              disabled={isDemo}
             />
+            {isDemo && (
+              <p className="text-sm text-gray-500 mt-2">Demo ID pre-filled for you</p>
+            )}
             
             <div className="flex justify-center mt-10">
               <button
                 className={`w-full py-3.5 rounded-xl text-white font-medium text-lg transition-all duration-300 button-shine
-                ${studentId.trim() 
-                  ? 'bg-alterview-gradient hover:shadow-md' 
-                  : 'bg-gray-300 cursor-not-allowed'}`}
+                ${isDemo 
+                  ? 'bg-gradient-to-r from-alterview-violet to-alterview-blue hover:from-alterview-blue hover:to-alterview-indigo shadow-lg font-bold' 
+                  : studentId.trim() 
+                    ? 'bg-alterview-gradient hover:shadow-md' 
+                    : 'bg-gray-300 cursor-not-allowed'}`}
                 type="submit"
-                disabled={!studentId.trim()}
+                disabled={!isDemo && !studentId.trim()}
               >
-                Sign In
+                {isDemo ? "Start Demo Assessment" : "Sign In"}
               </button>
             </div>
           </form>
-        </div>
-        
-        {/* Back link */}
-        <div className="text-center animate-fadeIn" style={{ animationDelay: '200ms' }}>
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center text-alterview-indigo hover:text-alterview-violet transition-colors apple-hover"
-          >
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            <span>Back to home</span>
-          </Link>
         </div>
       </div>
     </div>

@@ -95,39 +95,68 @@ export default function Home() {
 
   return (
     <div className="container mx-auto px-4 py-12 relative">
-      {/* Hero Section */}
+      {/* Hero Section - no top banner anymore */}
       <section className="flex flex-col md:flex-row items-center justify-between mb-40 min-h-[80vh] relative z-10">
         <div
-          className={`md:w-3/5 mb-10 md:mb-0 transition-all duration-500 ${
+          className={`md:w-2/3 mb-10 md:mb-0 transition-all duration-500 ${
             isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-            <span className="text-alterview-blue">Revolutionizing</span> <br />
-            <span className="bg-clip-text text-transparent bg-alterview-gradient">
-              Student Assessments
-            </span>
-          </h1>
-          <p className="text-lg text-gray-600 mb-8 max-w-lg">
-            Empowering educators with AI-powered interview assessments that
-            provide deeper insights into student understanding.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Link
-              href="/student-login"
-              className="px-8 py-3 bg-alterview-indigo hover:bg-alterview-violet text-white rounded-xl font-medium transition-colors duration-200 shadow-soft text-center active:scale-95 transform border-2 border-alterview-indigo"
-            >
-              Student Portal
-            </Link>
-            <Link
-              href="/teacher-login"
-              className="px-8 py-3 border-2 border-alterview-indigo text-alterview-indigo hover:bg-alterview-indigo hover:text-white rounded-xl font-medium transition-colors duration-200 text-center active:scale-95 transform"
-            >
-              Teacher Portal
-            </Link>
+          <div className="max-w-xl">
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+              <div className="text-alterview-blue">Revolutionizing</div>
+              <div className="bg-clip-text text-transparent bg-alterview-gradient whitespace-nowrap">
+                Student Assessments
+              </div>
+            </h1>
+            <p className="text-lg text-gray-600 mb-8">
+              Empowering educators with AI-powered interview assessments that
+              provide deeper insights into student understanding.
+            </p>
+            
+            {/* Buttons container */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+              {/* Demo button - takes full width on mobile, spans both columns on desktop */}
+              <div className="relative md:col-span-2">
+                <div className="absolute -inset-1 bg-gradient-to-r from-alterview-violet via-alterview-blue to-alterview-violet rounded-xl blur opacity-70 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse-slow"></div>
+                <Link
+                  href="/student-login?demo=true"
+                  className="relative px-8 py-3 bg-gradient-to-r from-alterview-violet to-alterview-blue text-white rounded-xl font-bold transition-all duration-300 shadow-xl text-center flex items-center justify-center hover:shadow-2xl hover:-translate-y-1 transform active:scale-95 group border-2 border-alterview-violet w-full"
+                >
+                  <div className="mr-3 bg-white/20 p-1 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <span>Try the Demo Now!</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </Link>
+              </div>
+              
+              {/* Student Portal button */}
+              <Link
+                href="/student-login"
+                className="px-8 py-3 bg-alterview-indigo hover:bg-alterview-violet text-white rounded-xl font-medium transition-colors duration-200 shadow-soft text-center active:scale-95 transform border-2 border-alterview-indigo w-full"
+              >
+                Student Portal
+              </Link>
+              
+              {/* Teacher Portal button */}
+              <Link
+                href="/teacher-login"
+                className="px-8 py-3 border-2 border-alterview-indigo text-alterview-indigo hover:bg-alterview-indigo hover:text-white rounded-xl font-medium transition-colors duration-200 text-center active:scale-95 transform w-full"
+              >
+                Teacher Portal
+              </Link>
+            </div>
           </div>
         </div>
-        <div className="md:w-2/5 h-80 relative">
+        <div
+          className={`md:w-1/3 h-80 relative`}
+        >
           {/* Network graph contained to this area */}
           <div className="absolute inset-0">
             <NetworkGraph contained={true} />
@@ -174,8 +203,7 @@ export default function Home() {
                 AI-Powered Conversations
               </h3>
               <p className="text-gray-600">
-                Natural, adaptive interview experiences that respond
-                intelligently to student answers.
+                Our advanced AI conducts natural, adaptive interviews that feel like real conversations, not scripted tests. Students engage in a dialogue that adjusts based on their responses, creating a more authentic assessment experience.
               </p>
             </div>
             <div className="bg-white/90 backdrop-blur-md p-8 rounded-xl shadow-apple hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
@@ -196,11 +224,10 @@ export default function Home() {
                 </svg>
               </div>
               <h3 className="text-xl font-semibold mb-3 text-gray-800">
-                Detailed Assessments
+                Comprehensive Insights
               </h3>
               <p className="text-gray-600">
-                Comprehensive reports and insights that help teachers understand
-                their students better.
+                Go beyond simple scores. Our detailed mind maps and analytics reveal students' conceptual understanding, knowledge gaps, and misconceptions. Teachers gain actionable insights to personalize instruction and target specific areas for improvement.
               </p>
             </div>
             <div className="bg-white/90 backdrop-blur-md p-8 rounded-xl shadow-apple hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
@@ -221,11 +248,10 @@ export default function Home() {
                 </svg>
               </div>
               <h3 className="text-xl font-semibold mb-3 text-gray-800">
-                Seamless Experience
+                Time-Saving Efficiency
               </h3>
               <p className="text-gray-600">
-                Easy to use platform for both students and teachers with minimal
-                setup required.
+                Automate the assessment process without sacrificing quality. AlterView conducts individualized interviews with each student simultaneously, providing educators with more time to focus on targeted teaching instead of repetitive testing.
               </p>
             </div>
           </div>
@@ -608,3 +634,31 @@ function NetworkGraph({
 
   return <canvas ref={canvasRef} className="w-full h-full" />;
 }
+
+<style jsx global>{`
+  @keyframes gentle-bounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  
+  .animate-bounce-gentle {
+    animation: gentle-bounce 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse-slow {
+    0%, 100% {
+      opacity: 0.7;
+    }
+    50% {
+      opacity: 0.4;
+    }
+  }
+  
+  .animate-pulse-slow {
+    animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+`}</style>
