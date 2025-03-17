@@ -73,7 +73,7 @@ function StudentLoginForm() {
           </Link>
         </div>
       
-        {/* Top logo section */}
+        {/* Top logo section  */}
         <div className="flex justify-center mb-6">
           <div className="relative h-24 w-24 animate-float">
             <Image
