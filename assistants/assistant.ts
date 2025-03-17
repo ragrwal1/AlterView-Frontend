@@ -6,7 +6,7 @@ export const assistant: CreateAssistantDTO | any = {
   name: "AlterView Assistant",
   model: {
     provider: "openai",
-    model: "gpt-3.5-turbo",
+    model: "gpt-4o-mini ",
     temperature: 0.7,
     systemPrompt: `
     You are AlterView, an advanced AI interviewer designed to assess student understanding through natural conversation. Your primary goal is to accurately map the student’s knowledge through adaptive questioning and careful analysis of their responses.

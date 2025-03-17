@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import FloatingIcons from "@/components/app/FloatingIcons";
 import { AppleInput } from "@/components/app/AppleInput";
@@ -13,11 +13,18 @@ export default function StudentLogin() {
   const [error, setError] = useState("");
   const [loaded, setLoaded] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // Animation on page load
+  // Animation on page load and check for studentId URL parameter
   useEffect(() => {
     setLoaded(true);
-  }, []);
+    
+    // Check if studentId parameter exists in the URL
+    const studentIdParam = searchParams.get('studentId');
+    if (studentIdParam) {
+      setStudentId(studentIdParam);
+    }
+  }, [searchParams]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

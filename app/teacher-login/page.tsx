@@ -28,8 +28,8 @@ export default function TeacherLogin() {
       return;
     }
     
-    // Navigate to the teacher dashboard
-    router.push(`/teacher/${teacherId}`);
+    // Navigate to the disabled teacher dashboard page
+    router.push("/teacher-disabled");
   };
 
   return (
