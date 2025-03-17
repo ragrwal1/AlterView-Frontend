@@ -38,13 +38,13 @@ export default function RootLayout({
               </Link>
               <nav className="hidden md:flex space-x-6">
                 <Link
-                  href="/student-login"
+                  href="/student-login?studentId=654321"
                   className="text-gray-700 hover:text-alterview-indigo transition-colors"
                 >
                   For Students
                 </Link>
                 <Link
-                  href="/teacher-login"
+                  href="/teacher-disabled"
                   className="text-gray-700 hover:text-alterview-indigo transition-colors"
                 >
                   For Teachers
