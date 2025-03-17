@@ -39,6 +39,12 @@ function StudentLoginForm() {
       return;
     }
     
+    // Check if the ID is the demo ID (654321)
+    if (studentId !== "654321") {
+      setError("Please use our demo ID: 654321");
+      return;
+    }
+    
     // For demo users, navigate to a specific assessment
     if (isDemo) {
       router.push(`/assessment/${studentId}/1`);  // Demo assessment ID is 1
