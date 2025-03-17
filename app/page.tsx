@@ -13,15 +13,6 @@ export default function Home() {
     cta: false,
   });
 
-  // Form state
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    institution: "",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formSuccess, setFormSuccess] = useState(false);
-
   const featuresRef = useRef<HTMLElement>(null);
   const ctaRef = useRef<HTMLElement>(null);
 
@@ -47,34 +38,6 @@ export default function Home() {
       }));
     }
   }, [isInViewport]);
-
-  // Handle form input changes - immediate feedback
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  // Handle form submission - faster processing
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    // Faster simulation of API call
-    setTimeout(() => {
-      console.log("Form submitted:", formData);
-      setIsSubmitting(false);
-      setFormSuccess(true);
-      setFormData({ name: "", email: "", institution: "" });
-
-      // Shorter reset time for success message
-      setTimeout(() => {
-        setFormSuccess(false);
-      }, 3000);
-    }, 500);
-  };
 
   useEffect(() => {
     setIsLoaded(true);
@@ -273,108 +236,22 @@ export default function Home() {
                 Ready to Transform Student Assessments?
               </h2>
               <p className="max-w-lg mx-auto">
-                Join educators who are revolutionizing the way they assess
-                student understanding.
               </p>
             </div>
 
             <div className="max-w-md mx-auto">
-              {formSuccess ? (
-                <div className="bg-white/20 backdrop-blur-md rounded-xl p-6 text-center animate-fadeIn">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-12 w-12 mx-auto text-white mb-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                  <h3 className="text-xl font-semibold mb-2">Thank You!</h3>
-                  <p>
-                    We've received your information and will be in touch soon.
-                  </p>
-                </div>
-              ) : (
-                <form
-                  onSubmit={handleSubmit}
-                  className="bg-white/10 backdrop-blur-md rounded-xl p-6"
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
+                <h3 className="text-xl font-semibold mb-4">Get Started With AlterView</h3>
+                <p className="mb-6">Fill out our Notion form to learn more about how AlterView can transform your assessment process.</p>
+                <a
+                  href="https://sumptuous-basin-2fa.notion.site/1b90f99daa9d809389cdc5718918d351"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block w-full px-8 py-3 bg-white text-alterview-indigo hover:bg-gray-100 rounded-xl font-medium transition-all duration-200 active:scale-98 transform hover:shadow-md"
                 >
-                  <div className="mb-4">
-                    <label
-                      htmlFor="name"
-                      className="block text-sm font-medium mb-1 text-white/90"
-                    >
-                      Name
-                    </label>
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-2.5 bg-white/20 border border-white/30 rounded-lg focus:ring-2 focus:ring-white/50 focus:outline-none text-white placeholder-white/50 transition-all duration-200"
-                      placeholder="Your name"
-                    />
-                  </div>
-
-                  <div className="mb-4">
-                    <label
-                      htmlFor="email"
-                      className="block text-sm font-medium mb-1 text-white/90"
-                    >
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-2.5 bg-white/20 border border-white/30 rounded-lg focus:ring-2 focus:ring-white/50 focus:outline-none text-white placeholder-white/50 transition-all duration-200"
-                      placeholder="you@example.com"
-                    />
-                  </div>
-
-                  <div className="mb-6">
-                    <label
-                      htmlFor="institution"
-                      className="block text-sm font-medium mb-1 text-white/90"
-                    >
-                      Institution
-                    </label>
-                    <input
-                      type="text"
-                      id="institution"
-                      name="institution"
-                      value={formData.institution}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-2.5 bg-white/20 border border-white/30 rounded-lg focus:ring-2 focus:ring-white/50 focus:outline-none text-white placeholder-white/50 transition-all duration-200"
-                      placeholder="School or university"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className={`w-full px-8 py-3 bg-white text-alterview-indigo hover:bg-gray-100 rounded-xl font-medium transition-all duration-200 active:scale-98 transform ${
-                      isSubmitting
-                        ? "opacity-75 cursor-not-allowed"
-                        : "hover:shadow-md"
-                    }`}
-                  >
-                    {isSubmitting ? "Processing..." : "Get Started Today"}
-                  </button>
-                </form>
-              )}
+                  Interest Form
+                </a>
+              </div>
             </div>
           </div>
         </div>
