@@ -61,14 +61,14 @@ export default function Home() {
       {/* Hero Section - no top banner anymore */}
       <section className="flex flex-col md:flex-row items-center justify-between mb-40 min-h-[80vh] relative z-50">
         <div
-          className={`md:w-2/3 mb-10 md:mb-0 transition-all duration-500 ${
+          className={`md:w-2/3 mb-10 md:mb-0 transition-all duration-500 relative z-20 ${
             isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
-          <div className="max-w-xl">
+          <div className="max-w-2xl">
             <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
               <div className="text-alterview-blue">Revolutionizing</div>
-              <div className="bg-clip-text text-transparent bg-alterview-gradient whitespace-nowrap">
+              <div className="bg-clip-text text-transparent bg-alterview-gradient">
                 Student Assessments
               </div>
             </h1>
@@ -109,7 +109,7 @@ export default function Home() {
               
               {/* Teacher Portal button */}
               <Link
-                href="/teacher-disabled"
+                href="/teacher-login"
                 className="px-8 py-3 border-2 border-alterview-indigo text-alterview-indigo hover:bg-alterview-indigo hover:text-white rounded-xl font-medium transition-colors duration-200 text-center active:scale-95 transform w-full"
               >
                 Teacher Portal
@@ -118,7 +118,7 @@ export default function Home() {
           </div>
         </div>
         <div
-          className={`md:w-1/3 h-80 relative`}
+          className={`md:w-1/3 h-80 relative z-10`}
         >
           {/* Network graph contained to this area */}
           <div className="absolute inset-0">
