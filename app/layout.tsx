@@ -11,20 +11,9 @@ export const metadata: Metadata = {
   title: "Alterview - AI-Powered Student Assessments",
   description: "Revolutionizing student assessments using AI",
   icons: {
-    icon: [
-      {
-        url: '/favicon.ico',
-        sizes: 'any',
-      },
-      {
-        url: '/alterview-logo.svg',
-        type: 'image/svg+xml',
-      }
-    ],
-    apple: {
-      url: '/alterview-logo.png',
-      type: 'image/png',
-    },
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/alterview-logo.png',
   },
 };
 
@@ -35,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
+      <body className={inter.className}>
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-BM9Q3E1JBE"
           strategy="afterInteractive"
@@ -48,8 +37,6 @@ export default function RootLayout({
             gtag('config', 'G-BM9Q3E1JBE');
           `}
         </Script>
-      </head>
-      <body className={inter.className}>
         <div className="min-h-screen bg-gray-50 flex flex-col">
           <header className="w-full bg-white shadow-soft py-4">
             <div className="container mx-auto px-4 flex items-center justify-between">
