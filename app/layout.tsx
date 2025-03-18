@@ -10,6 +10,22 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Alterview - AI-Powered Student Assessments",
   description: "Revolutionizing student assessments using AI",
+  icons: {
+    icon: [
+      {
+        url: '/favicon.ico',
+        sizes: 'any',
+      },
+      {
+        url: '/alterview-logo.svg',
+        type: 'image/svg+xml',
+      }
+    ],
+    apple: {
+      url: '/alterview-logo.png',
+      type: 'image/png',
+    },
+  },
 };
 
 export default function RootLayout({
