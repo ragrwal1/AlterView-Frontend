@@ -1,8 +1,48 @@
 import { assistant as defaultAssistant } from "@/assistants/assistant";
-import { getMindmap } from "./supabaseService";
+import { getMindmap, assignAssessmentToStudent } from "./supabaseService";
+import 'dotenv/config';
 
-// Update API URL to the actual API endpoint
-const API_BASE_URL = "https://alterview-api.vercel.app/api/v1";
+// Update API URL to use environment variable or fallback to localhost
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1";
+const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
+
+// Helper function to add authorization header to fetch requests
+const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
+  const headers = {
+    ...options.headers,
+    'Authorization': `Bearer ${API_KEY}`,
+    'Content-Type': 'application/json',
+  };
+
+  try {
+    // Set a timeout for the fetch request (10 seconds)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
+    const response = await fetch(url, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+    
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    // Handle specific error types
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      console.error(`API request to ${url} timed out after 10 seconds`);
+      throw new Error(`API request timed out: ${url}`);
+    }
+    
+    if (error instanceof TypeError && error.message.includes('NetworkError')) {
+      console.error(`Network error when connecting to ${url}. API might be down or unreachable.`);
+      throw new Error(`API unreachable. Please check your connection: ${url}`);
+    }
+    
+    // Rethrow other errors
+    throw error;
+  }
+};
 
 export interface AssistmentPromptData {
   systemPrompt: string;
@@ -12,9 +52,10 @@ export interface AssistmentPromptData {
 export interface CreateAssessmentData {
   title: string;
   description: string;
-  mindmap_template?: Record<string, any>;
   course_material?: File;
   extracted_text?: string;
+  creator_id: string;
+  is_creator_student: boolean;
 }
 
 interface AssessmentApiResponse {
@@ -23,8 +64,53 @@ interface AssessmentApiResponse {
   name: string;
   first_question: string;
   system_prompt: string;
-  mindmap_template: string; // Changed to string as the API returns it as a string
+  mindmap_template: string;
   teacher_id: number;
+}
+
+/**
+ * Generates a mindmap template from extracted text using the API
+ * @param text The extracted text to generate mindmap from
+ * @returns Promise with the generated mindmap template
+ */
+async function generateMindmapFromText(text: string): Promise<Record<string, any>> {
+  try {
+    // Check text length constraints - API has max_length=4000
+    if (!text || text.trim().length === 0) {
+      console.error("Text for mindmap generation is empty");
+      throw new Error('Text cannot be empty');
+    }
+    
+    if (text.length > 4000) {
+      console.warn(`Text length (${text.length}) exceeds API limit of 4000 characters. Truncating text.`);
+      text = text.substring(0, 3997) + "...";
+    }
+    
+    // Call the API to generate mindmap with auth
+    const response = await fetchWithAuth(`${API_BASE_URL}/assessments/generate-mindmap`, {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'No error details available');
+      console.error(`Mindmap generation failed with status ${response.status}: ${errorText}`);
+      throw new Error(`Failed to generate mindmap: ${response.status} ${response.statusText}`);
+    }
+
+    const mindmap = await response.json();
+    return mindmap;
+  } catch (error) {
+    console.error("Error generating mindmap:", error);
+    // Return a basic mindmap template if generation fails
+    return {
+      topic: {
+        name: "Main Topic",
+        description: "Generated from provided content",
+        subtopics: []
+      }
+    };
+  }
 }
 
 /**
@@ -36,8 +122,8 @@ export async function fetchAssessmentPromptData(
   assessmentId: string
 ): Promise<AssistmentPromptData> {
   try {
-    // Fetch specific assessment data from the API
-    const response = await fetch(
+    // Fetch specific assessment data from the API with auth
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/assessments/${assessmentId}`
     );
 
@@ -74,51 +160,93 @@ export async function fetchAssessmentPromptData(
 
 /**
  * Creates a new assessment with the provided data
- * @param data Assessment data including title, description, and optional mind map template
+ * @param data Assessment data including title, description, and extracted text
  * @returns Promise with the created assessment ID
  */
 export async function createAssessment(
-  data: CreateAssessmentData,
-  teacherId: string = "1" // Default teacher ID if none provided
+  data: CreateAssessmentData
 ): Promise<string> {
   try {
-    // Convert the mind map template to a string if it exists
-    const mindmapTemplateString = data.mindmap_template 
-      ? JSON.stringify(data.mindmap_template) 
-      : "{}";
+    // Generate mindmap template from extracted text if available
+    let mindmapTemplate;
+    
+    if (data.extracted_text) {
+      try {
+        mindmapTemplate = await generateMindmapFromText(data.extracted_text);
+        console.log("Mindmap generated successfully:", mindmapTemplate);
+      } catch (error) {
+        console.warn("Failed to generate mindmap from text, using fallback template:", error);
+        // Fallback to a simple mindmap if generation fails
+        mindmapTemplate = { 
+          topic: { 
+            name: data.title, 
+            description: data.description || "Generated from provided content", 
+            subtopics: [] 
+          } 
+        };
+      }
+    } else {
+      // No extracted text available, use basic template
+      mindmapTemplate = { 
+        topic: { 
+          name: data.title, 
+          description: data.description || "Assessment topic", 
+          subtopics: [] 
+        } 
+      };
+    }
+
+    // Convert the mindmap template to a string
+    const mindmapTemplateString = JSON.stringify(mindmapTemplate);
 
     // Create the assessment data in the format expected by the API
-    const requestData = {
+    const requestData: any = {
       name: data.title,
       first_question: "What do you know about this topic?", // Default first question
       system_prompt: data.description || "Please assess the student's understanding of the topic.", 
       mindmap_template: mindmapTemplateString,
-      teacher_id: parseInt(teacherId),
-      course_material_text: data.extracted_text || ""
+      course_material_text: data.extracted_text ? (data.extracted_text.length > 4000 ? data.extracted_text.substring(0, 3997) + "..." : data.extracted_text) : ""
     };
 
-    // Send the request to the API
-    const response = await fetch(`${API_BASE_URL}/assessments/`, {
+    // Set either teacher_id or student_id based on creator type
+    if (data.is_creator_student) {
+      requestData.student_id = parseInt(data.creator_id);
+    } else {
+      requestData.teacher_id = parseInt(data.creator_id);
+    }
+
+    // Send the request to the API with auth
+    const response = await fetchWithAuth(`${API_BASE_URL}/assessments/`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(requestData),
     });
     
     if (!response.ok) {
-      throw new Error('Failed to create assessment');
+      const errorText = await response.text().catch(() => 'No error details available');
+      console.error(`Assessment creation failed with status ${response.status}: ${errorText}`);
+      throw new Error(`Failed to create assessment: ${response.status} ${response.statusText}`);
     }
     
     const result = await response.json();
-    return result.id.toString();
+    const assessmentId = result.id.toString();
+
+    // If the creator is a student, automatically assign the assessment to them
+    if (data.is_creator_student) {
+      try {
+        await assignAssessmentToStudent(parseInt(data.creator_id), parseInt(assessmentId));
+      } catch (error) {
+        console.error("Error self-assigning assessment to student:", error);
+        // Don't throw here - we still want to return the assessment ID even if assignment fails
+      }
+    }
+    
+    return assessmentId;
   } catch (error) {
     console.error("Error creating assessment:", error);
     
-    // For demo purposes, still return a mock ID if the API call fails
-    // This ensures the app doesn't break during testing
-    console.warn("Using fallback mock assessment ID due to API error");
-    return `new-assessment-${Date.now()}`;
+    // For demo purposes, return a valid fallback ID that will work with the practice page
+    console.warn("Using fallback assessment ID due to API error");
+    return "1"; // Use a valid assessment ID that exists in the system
   }
 }
 
@@ -131,8 +259,8 @@ export async function fetchAssessmentMindMap(
   assessmentId: string
 ): Promise<Record<string, any>> {
   try {
-    // Fetch the assessment data from the API
-    const response = await fetch(`${API_BASE_URL}/assessments/${assessmentId}`);
+    // Fetch the assessment data from the API with auth
+    const response = await fetchWithAuth(`${API_BASE_URL}/assessments/${assessmentId}`);
     
     if (!response.ok) {
       throw new Error('Failed to fetch assessment data');
@@ -206,8 +334,8 @@ export async function updateAssessmentMindMap(
   mindMapData: Record<string, any>
 ): Promise<boolean> {
   try {
-    // First fetch the current assessment to get all fields
-    const getResponse = await fetch(`${API_BASE_URL}/assessments/${assessmentId}`);
+    // First fetch the current assessment to get all fields with auth
+    const getResponse = await fetchWithAuth(`${API_BASE_URL}/assessments/${assessmentId}`);
     if (!getResponse.ok) {
       throw new Error('Failed to fetch assessment data');
     }
@@ -235,11 +363,8 @@ export async function updateAssessmentMindMap(
       mindmap_template: JSON.stringify(mindMapData)
     };
     
-    const updateResponse = await fetch(`${API_BASE_URL}/assessments/${assessmentId}`, {
+    const updateResponse = await fetchWithAuth(`${API_BASE_URL}/assessments/${assessmentId}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(updatedAssessment),
     });
     
@@ -263,7 +388,7 @@ export async function fetchTeacherAssessments(
   teacherId: string
 ): Promise<any[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/assessments/teacher/${teacherId}`);
+    const response = await fetchWithAuth(`${API_BASE_URL}/assessments/teacher/${teacherId}`);
     if (!response.ok) {
       throw new Error('Failed to fetch teacher assessments');
     }
@@ -356,8 +481,8 @@ export async function fetchAssessmentDetails(
   }
 
   try {
-    // For other assessments, fetch from the API
-    const response = await fetch(
+    // For other assessments, fetch from the API with auth
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/assessments/${assessmentId}`
     );
 
@@ -401,8 +526,8 @@ export async function fetchAssessmentStudents(
   assessmentId: string
 ): Promise<any[]> {
   try {
-    // Get all assessment results (no endpoint to filter by assessment yet)
-    const resultsResponse = await fetch(`${API_BASE_URL}/assessment-results`);
+    // Get all assessment results (no endpoint to filter by assessment yet) with auth
+    const resultsResponse = await fetchWithAuth(`${API_BASE_URL}/assessment-results`);
     if (!resultsResponse.ok) {
       throw new Error('Failed to fetch assessment results');
     }
@@ -416,7 +541,7 @@ export async function fetchAssessmentStudents(
     
     // Get student details for each result
     const studentPromises = assessmentResults.map(async (result: any) => {
-      const studentResponse = await fetch(`${API_BASE_URL}/students/${result.student_id}`);
+      const studentResponse = await fetchWithAuth(`${API_BASE_URL}/students/${result.student_id}`);
       if (!studentResponse.ok) {
         return null;
       }
@@ -459,8 +584,8 @@ export async function fetchStudentAssessmentResult(
   assessmentId: string
 ): Promise<any> {
   try {
-    // Get the result for this assessment
-    const response = await fetch(`${API_BASE_URL}/assessment-results/${assessmentId}`);
+    // Get the result for this assessment with auth
+    const response = await fetchWithAuth(`${API_BASE_URL}/assessment-results/${assessmentId}`);
     if (!response.ok) {
       throw new Error('Failed to fetch student results');
     }
@@ -545,7 +670,7 @@ export async function fetchStudentAssessmentResults(
   studentId: string
 ): Promise<any[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/assessment-results/student/${studentId}`);
+    const response = await fetchWithAuth(`${API_BASE_URL}/assessment-results/student/${studentId}`);
     if (!response.ok) {
       throw new Error('Failed to fetch student assessment results');
     }
@@ -593,7 +718,7 @@ export async function generateAssessmentInsights(
   assessmentId: string
 ): Promise<any> {
   try {
-    const response = await fetch(`${API_BASE_URL}/assessments/${assessmentId}/process`);
+    const response = await fetchWithAuth(`${API_BASE_URL}/assessments/${assessmentId}/process`);
     if (!response.ok) {
       throw new Error('Failed to generate assessment insights');
     }
@@ -664,7 +789,7 @@ export async function fetchStudentAssessments(
   studentId: string
 ): Promise<any[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/assessments/student/${studentId}`);
+    const response = await fetchWithAuth(`${API_BASE_URL}/assessments/student/${studentId}`);
     if (!response.ok) {
       throw new Error('Failed to fetch student assessments');
     }

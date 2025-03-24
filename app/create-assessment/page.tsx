@@ -2,17 +2,17 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeftCircle, Upload, X, FileText, AlertCircle, CheckCircle, FileType } from "lucide-react";
-import { createAssessment } from "@/services/assessmentService";
+import { createAssessment, CreateAssessmentData } from "@/services/assessmentService";
 import FloatingIcons from "@/components/app/FloatingIcons";
 import { isPdfFile, extractTextFromPdf } from "@/utils/pdfUtils";
 
-export default function CreateAssessment({
-  params,
-}: {
-  params: { teacher_id: string };
-}) {
+export default function CreateAssessment() {
+  const searchParams = useSearchParams();
+  const creatorId = searchParams?.get('creator_id') || '';
+  const isCreatorStudent = searchParams?.get('is_creator_student') === 'true';
+  
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [courseMaterial, setCourseMaterial] = useState<File | null>(null);
@@ -95,15 +95,17 @@ export default function CreateAssessment({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (isSubmitting || !title || !description) return;
+    if (isSubmitting || !title || !description || !creatorId) return;
 
     try {
       setIsSubmitting(true);
 
       // Create assessment using our service
-      const assessmentData: any = {
+      const assessmentData: CreateAssessmentData = {
         title,
         description,
+        creator_id: creatorId,
+        is_creator_student: isCreatorStudent,
       };
       
       // Only include course_material and extracted_text if a valid file exists
@@ -114,8 +116,12 @@ export default function CreateAssessment({
 
       const assessmentId = await createAssessment(assessmentData);
 
-      // Redirect to the assessment details page
-      router.push(`/teacher/${params.teacher_id}/assessment/${assessmentId}`);
+      // Redirect to the appropriate assessment details page based on creator type
+      const redirectPath = isCreatorStudent 
+        ? `/student/${creatorId}/practice/${assessmentId}`
+        : `/teacher/${creatorId}/assessment/${assessmentId}`;
+      
+      router.push(redirectPath);
     } catch (error) {
       console.error("Failed to create assessment:", error);
       alert("Failed to create assessment. Please try again.");
@@ -170,7 +176,7 @@ export default function CreateAssessment({
             </div>
             
             <Link
-              href={`/teacher/${params.teacher_id}`}
+              href={isCreatorStudent ? `/student/${creatorId}` : `/teacher/${creatorId}`}
               className="inline-flex items-center p-2.5 text-alterview-indigo hover:text-alterview-violet transition-colors rounded-xl hover:bg-gray-50 animate-fadeIn"
               style={{ animationDelay: '200ms' }}
             >
@@ -320,7 +326,7 @@ export default function CreateAssessment({
         {/* Back link */}
         <div className="text-center animate-fadeIn" style={{ animationDelay: '300ms' }}>
           <Link
-            href={`/teacher/${params.teacher_id}`}
+            href={isCreatorStudent ? `/student/${creatorId}` : `/teacher/${creatorId}`}
             className="inline-flex items-center justify-center text-alterview-indigo hover:text-alterview-violet transition-colors apple-hover"
           >
             <ArrowLeftCircle className="h-4 w-4 mr-1" />

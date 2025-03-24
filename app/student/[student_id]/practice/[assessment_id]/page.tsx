@@ -3,6 +3,7 @@
 import { Inter } from "next/font/google";
 import { Assistant } from "@/components/app/assistant";
 import { useEffect, useState } from "react";
+import { fetchAssessmentDetails } from "@/services/assessmentService";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,23 +25,15 @@ export default function StudentPracticePage({ params }: { params: { student_id: 
   useEffect(() => {
     async function fetchAssessment() {
       try {
-        // This is a placeholder API endpoint - replace with your actual endpoint
-        const response = await fetch('https://alterview-api.vercel.app/api/v1/assessments');
+        // Use the service function to fetch the assessment with proper auth
+        const assessmentData = await fetchAssessmentDetails(params.assessment_id);
         
-        if (!response.ok) {
-          throw new Error('Failed to fetch assessment data');
-        }
+        // Mark this as a practice assessment
+        assessmentData.is_practice = true;
         
-        const assessments: Assessment[] = await response.json();
-        const foundAssessment = assessments.find(a => a.id.toString() === params.assessment_id);
-        
-        if (foundAssessment) {
-          setAssessment(foundAssessment);
-        } else {
-          setError(`Assessment with ID ${params.assessment_id} not found`);
-        }
+        setAssessment(assessmentData);
       } catch (err) {
-        setError('Error loading assessment data');
+        setError('Failed to fetch assessment data');
         console.error(err);
       } finally {
         setLoading(false);

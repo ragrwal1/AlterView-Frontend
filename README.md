@@ -29,7 +29,20 @@ The application follows a clear routing structure:
 
 ## Getting Started
 
-First, run the development server:
+First, set up your environment variables:
+
+1. Copy the example environment file:
+```bash
+cp .env.example .env
+```
+
+2. Edit the `.env` file and update with your actual API credentials:
+```
+NEXT_PUBLIC_API_BASE_URL=http://your-api-url.com/api/v1
+NEXT_PUBLIC_API_KEY=your_actual_api_key
+```
+
+Then run the development server:
 
 ```bash
 npm run dev

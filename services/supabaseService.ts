@@ -254,3 +254,49 @@ export async function processMindmap(assessmentResultId: number) {
     return null;
   }
 }
+
+/**
+ * Assigns an assessment to a student by updating their assessment_ids array
+ * @param studentId - The ID of the student
+ * @param assessmentId - The ID of the assessment to assign
+ * @returns The result of the update operation
+ */
+export async function assignAssessmentToStudent(
+  studentId: number,
+  assessmentId: number
+) {
+  try {
+    // First, get the current assessment_ids array for the student
+    const { data: student, error: fetchError } = await supabase
+      .from('Student')
+      .select('assessment_ids')
+      .eq('id', studentId)
+      .single();
+    
+    if (fetchError) {
+      console.error('Error fetching student data:', fetchError);
+      throw fetchError;
+    }
+
+    // Create a new array with the existing assessments plus the new one
+    const currentAssessments = student?.assessment_ids || [];
+    const updatedAssessments = Array.from(new Set([...currentAssessments, assessmentId]));
+
+    // Update the student's assessment_ids array
+    const { data: result, error: updateError } = await supabase
+      .from('Student')
+      .update({ assessment_ids: updatedAssessments })
+      .eq('id', studentId)
+      .select();
+    
+    if (updateError) {
+      console.error('Error updating student assessments:', updateError);
+      throw updateError;
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('Exception when assigning assessment to student:', error);
+    throw error;
+  }
+}

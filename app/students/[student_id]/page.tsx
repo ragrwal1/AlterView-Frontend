@@ -250,6 +250,13 @@ export default function StudentDashboard({
                 ID: {params.student_id}
               </p>
               <div className="flex items-center space-x-3">
+                <Link
+                  href={`/create-assessment?creator_id=${params.student_id}&is_creator_student=true`}
+                  className="inline-flex items-center text-sm text-alterview-indigo hover:text-alterview-violet transition-colors"
+                >
+                  <FileText className="h-4 w-4 mr-1" />
+                  <span>Create Assessment</span>
+                </Link>
                 <button
                   onClick={() => setShowSettings(true)}
                   className="inline-flex items-center text-sm text-alterview-indigo hover:text-alterview-violet transition-colors"
