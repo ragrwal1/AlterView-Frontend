@@ -119,8 +119,8 @@ function AssessmentForm() {
 
       // Redirect back to the appropriate dashboard
       const redirectPath = isCreatorStudent 
-        ? `/students/${creatorId}`
-        : `/teachers/${creatorId}`;
+        ? `/student/${creatorId}/practice/${assessmentId}`
+        : `/teacher/${creatorId}/assessment/${assessmentId}`;
       
       router.push(redirectPath);
     } catch (error) {
