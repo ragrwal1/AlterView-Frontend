@@ -187,7 +187,7 @@ async function generateMindmapFromText(
     
     // Add title and description if provided
     if (title) requestBody.title = title;
-    if (description) requestBody.description = description;
+    if (description) requestBody.overview = description;
     
     // Call the API to generate mindmap with auth
     const response = await fetchWithAuth(`${API_BASE_URL}/assessments/generate-mindmap`, {

@@ -216,7 +216,7 @@ function AssessmentForm() {
                   className="block text-gray-700 font-medium mb-2"
                   htmlFor="description"
                 >
-                  Description
+                  Overview
                 </label>
                 <textarea
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-alterview-indigo focus:outline-none focus:ring-1 focus:ring-alterview-indigo/20 transition-all"
