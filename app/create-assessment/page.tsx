@@ -116,10 +116,10 @@ export default function CreateAssessment() {
 
       const assessmentId = await createAssessment(assessmentData);
 
-      // Redirect to the appropriate assessment details page based on creator type
+      // Redirect back to the appropriate dashboard
       const redirectPath = isCreatorStudent 
-        ? `/student/${creatorId}/practice/${assessmentId}`
-        : `/teacher/${creatorId}/assessment/${assessmentId}`;
+        ? `/students/${creatorId}`
+        : `/teachers/${creatorId}`;
       
       router.push(redirectPath);
     } catch (error) {
