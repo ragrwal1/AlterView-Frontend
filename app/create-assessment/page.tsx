@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeftCircle, Upload, X, FileText, AlertCircle, CheckCircle, FileType } from "lucide-react";
@@ -8,7 +8,8 @@ import { createAssessment, CreateAssessmentData } from "@/services/assessmentSer
 import FloatingIcons from "@/components/app/FloatingIcons";
 import { isPdfFile, extractTextFromPdf } from "@/utils/pdfUtils";
 
-export default function CreateAssessment() {
+// Create a separate component for handling search params
+function AssessmentForm() {
   const searchParams = useSearchParams();
   const creatorId = searchParams?.get('creator_id') || '';
   const isCreatorStudent = searchParams?.get('is_creator_student') === 'true';
@@ -321,5 +322,21 @@ export default function CreateAssessment() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Main page component with Suspense boundary
+export default function CreateAssessment() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-xl font-medium text-gray-700 mb-4">Loading form...</h2>
+          <div className="animate-pulse bg-gray-200 h-6 w-48 rounded mx-auto"></div>
+        </div>
+      </div>
+    }>
+      <AssessmentForm />
+    </Suspense>
   );
 }
