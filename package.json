@@ -7,7 +7,8 @@
     "dev:https": "concurrently \"next dev\" \"local-ssl-proxy --source 3001 --target 3000\"",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "setup-pdfjs": "bash scripts/setup-pdfjs.sh"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.0.2",
@@ -20,6 +21,7 @@
     "fuse.js": "^7.0.0",
     "lucide-react": "^0.330.0",
     "next": "14.1.0",
+    "pdfjs-dist": "^5.0.375",
     "react": "^18",
     "react-dom": "^18",
     "tailwind-merge": "^2.2.1",

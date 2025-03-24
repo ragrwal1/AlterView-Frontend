@@ -100,3 +100,30 @@ This project is configured for easy deployment on Vercel. All configuration valu
 3. Your app will be deployed to a URL like `your-project.vercel.app`
 
 For more customization options, refer to the [Vercel documentation](https://vercel.com/docs).
+
+## PDF Extraction Setup
+
+This application uses PDF.js for PDF text extraction in the assessment creation flow. We use local PDF.js files stored in the public directory for reliability and performance:
+
+### Required Files in public/js/pdf/
+
+- `pdf.mjs` - Main PDF.js library
+- `pdf.worker.mjs` - PDF.js worker script 
+- `cmaps/` - Character maps for international text support
+
+```javascript
+// Configure PDF.js to use local worker file
+if (typeof window !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = '/js/pdf/pdf.worker.mjs';
+}
+
+// PDF.js document configuration
+{
+  nativeImageDecoderSupport: 'display',
+  ignoreErrors: true,
+  cMapUrl: '/js/pdf/cmaps/',
+  cMapPacked: true
+}
+```
+
+This local file approach ensures the application works reliably without external dependencies or CORS issues. It also provides better performance and works offline once the application is loaded.

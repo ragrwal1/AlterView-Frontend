@@ -13,6 +13,8 @@ export interface CreateAssessmentData {
   title: string;
   description: string;
   mindmap_template?: Record<string, any>;
+  course_material?: File;
+  extracted_text?: string;
 }
 
 interface AssessmentApiResponse {
@@ -91,7 +93,8 @@ export async function createAssessment(
       first_question: "What do you know about this topic?", // Default first question
       system_prompt: data.description || "Please assess the student's understanding of the topic.", 
       mindmap_template: mindmapTemplateString,
-      teacher_id: parseInt(teacherId)
+      teacher_id: parseInt(teacherId),
+      course_material_text: data.extracted_text || ""
     };
 
     // Send the request to the API
