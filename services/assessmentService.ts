@@ -81,11 +81,6 @@ async function generateMindmapFromText(text: string): Promise<Record<string, any
       throw new Error('Text cannot be empty');
     }
     
-    if (text.length > 4000) {
-      console.warn(`Text length (${text.length}) exceeds API limit of 4000 characters. Truncating text.`);
-      text = text.substring(0, 3997) + "...";
-    }
-    
     // Call the API to generate mindmap with auth
     const response = await fetchWithAuth(`${API_BASE_URL}/assessments/generate-mindmap`, {
       method: 'POST',
@@ -205,7 +200,7 @@ export async function createAssessment(
       first_question: "What do you know about this topic?", // Default first question
       system_prompt: data.description || "Please assess the student's understanding of the topic.", 
       mindmap_template: mindmapTemplateString,
-      course_material_text: data.extracted_text ? (data.extracted_text.length > 4000 ? data.extracted_text.substring(0, 3997) + "..." : data.extracted_text) : ""
+      course_material_text: data.extracted_text || ""
     };
 
     // Set either teacher_id or student_id based on creator type

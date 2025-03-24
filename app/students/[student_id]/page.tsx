@@ -218,6 +218,11 @@ export default function StudentDashboard({
     return `${Math.floor(diffDays / 30)} months ago`;
   };
 
+  // Filter assessments to only show IDs 4, 5, and 1
+  const filteredAssessments = assessments.filter(assessment => 
+    ['4', '5', '1'].includes(assessment.id)
+  );
+
   // Group concepts by status for the practice view
   const conceptsByStatus = {
     new: [],
@@ -261,25 +266,46 @@ export default function StudentDashboard({
               </p>
               <div className="flex items-center space-x-3">
                 <Link
-                  href={`/create-assessment?creator_id=${params.student_id}&is_creator_student=true`}
-                  className="inline-flex items-center text-sm text-alterview-indigo hover:text-alterview-violet transition-colors"
-                >
-                  <FileText className="h-4 w-4 mr-1" />
-                  <span>Create Assessment</span>
-                </Link>
-                {/* <button
-                  onClick={() => setShowSettings(true)}
-                  className="inline-flex items-center text-sm text-alterview-indigo hover:text-alterview-violet transition-colors"
-                >
-                  <Settings className="h-4 w-4 mr-1" />
-                  <span>Settings</span>
-                </button> */}
-                <Link
                   href="/"
                   className="inline-flex items-center text-sm text-alterview-indigo hover:text-alterview-violet transition-colors"
                 >
                   <LogOut className="h-4 w-4 mr-1" />
                   <span>Logout</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Create Assessment Button */}
+        <div
+          className={`bg-white/90 backdrop-blur-md rounded-2xl mb-6 shadow-apple animate-scaleIn overflow-hidden transition-all duration-700 ease-out ${
+            loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
+          style={{ animationDelay: "100ms" }}
+        >
+          <div className="px-8 py-6">
+            <div className="flex items-center space-x-6">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 rounded-xl bg-alterview-indigo/10 flex items-center justify-center">
+                  <FileText className="h-6 w-6 text-alterview-indigo" />
+                </div>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                  Create Custom Assessment
+                </h3>
+                <p className="text-gray-600">
+                  Want to test your knowledge on a custom topic? Try it here.
+                </p>
+              </div>
+              <div className="flex-shrink-0">
+                <Link
+                  href={`/create-assessment?creator_id=${params.student_id}&is_creator_student=true`}
+                  className="inline-flex items-center px-4 py-2.5 bg-alterview-gradient text-white rounded-xl hover:shadow-md transition-all duration-300 group"
+                >
+                  <span className="text-base font-medium">Create</span>
+                  <ChevronRight className="h-4 w-4 ml-1.5 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
               </div>
             </div>
@@ -302,14 +328,14 @@ export default function StudentDashboard({
               </h2>
             </div>
             <span className="text-sm text-gray-500">
-              {assessments.length} total
+              {filteredAssessments.length} total
             </span>
           </div>
 
           {/* Assessment list */}
-          {assessments.length > 0 ? (
+          {filteredAssessments.length > 0 ? (
             <div className="divide-y divide-gray-100">
-              {assessments.map((assessment, index) => (
+              {filteredAssessments.map((assessment, index) => (
                 <div
                   key={assessment.id}
                   className="hover:bg-gray-50/80 transition-colors"

@@ -168,15 +168,12 @@ export default function CreateAssessment() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
             <div>
               <h1 className="text-4xl font-semibold text-gray-900 mb-3 animate-fadeIn">
-                Create New Assessment
+                Create Practice Assessment
               </h1>
-              <p className="text-gray-500 text-lg animate-fadeIn" style={{ animationDelay: '100ms' }}>
-                Design an interview assessment for your students
-              </p>
             </div>
             
             <Link
-              href={isCreatorStudent ? `/student/${creatorId}` : `/teacher/${creatorId}`}
+              href={isCreatorStudent ? `/students/${creatorId}` : `/teacher/${creatorId}`}
               className="inline-flex items-center p-2.5 text-alterview-indigo hover:text-alterview-violet transition-colors rounded-xl hover:bg-gray-50 animate-fadeIn"
               style={{ animationDelay: '200ms' }}
             >
@@ -321,17 +318,6 @@ export default function CreateAssessment() {
               </div>
             </div>
           </form>
-        </div>
-        
-        {/* Back link */}
-        <div className="text-center animate-fadeIn" style={{ animationDelay: '300ms' }}>
-          <Link
-            href={isCreatorStudent ? `/student/${creatorId}` : `/teacher/${creatorId}`}
-            className="inline-flex items-center justify-center text-alterview-indigo hover:text-alterview-violet transition-colors apple-hover"
-          >
-            <ArrowLeftCircle className="h-4 w-4 mr-1" />
-            <span>Back to dashboard</span>
-          </Link>
         </div>
       </div>
     </div>
