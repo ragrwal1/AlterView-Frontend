@@ -22,14 +22,19 @@ echo "Running npm build to check for errors..."
 if npm run build; then
   echo "Build successful! Proceeding with commit..."
   
-  # Get a random message from the array
-  RANDOM_INDEX=$((RANDOM % ${#MESSAGES[@]}))
-  COMMIT_MESSAGE="${MESSAGES[$RANDOM_INDEX]}"
+  # Check if a custom commit message was provided as an argument
+  if [ $# -gt 0 ]; then
+    COMMIT_MESSAGE="$1"
+  else
+    # Get a random message from the array
+    RANDOM_INDEX=$((RANDOM % ${#MESSAGES[@]}))
+    COMMIT_MESSAGE="${MESSAGES[$RANDOM_INDEX]}"
+  fi
 
   # Add all changes
   git add .
 
-  # Commit with the random message
+  # Commit with the message
   git commit -m "$COMMIT_MESSAGE"
 
   # Push to remote
