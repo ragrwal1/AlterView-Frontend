@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import 'dotenv/config';
 
 // Utility function to generate random integers
 function randomInt(min: number, max: number): number {
@@ -6,8 +7,12 @@ function randomInt(min: number, max: number): number {
 }
 
 // Supabase configuration
-const SUPABASE_URL = "https://ieaylpizqqbrmyduarvx.supabase.co";
-const SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllYXlscGl6cXFicm15ZHVhcnZ4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MTY3ODMxMywiZXhwIjoyMDU3MjU0MzEzfQ.qi-n5c0TRR-LZv9gp3DDrpTDXbJYvr5jlNfif1KBHrc';
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+
+if (!SUPABASE_URL || !SERVICE_KEY) {
+  throw new Error('Missing Supabase configuration. Please check your environment variables.');
+}
 
 // Create a Supabase client with the service key for full access
 const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
