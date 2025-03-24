@@ -4,6 +4,7 @@ import Script from "next/script";
 import "../styles/globals.css";
 import Image from "next/image";
 import Link from "next/link";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -37,6 +38,7 @@ export default function RootLayout({
             gtag('config', 'G-BM9Q3E1JBE');
           `}
         </Script>
+        <SpeedInsights />
         <div className="min-h-screen bg-gray-50 flex flex-col">
           <header className="w-full bg-white shadow-soft py-4">
             <div className="container mx-auto px-4 flex items-center justify-between">

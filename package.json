@@ -15,6 +15,7 @@
     "@supabase/supabase-js": "^2.49.1",
     "@types/d3": "^7.4.3",
     "@vapi-ai/web": "^1.0.266",
+    "@vercel/speed-insights": "^1.2.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "d3": "^7.9.0",
