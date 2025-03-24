@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',
-    apple: '/alterview-logo.png',
+    apple: '/apple-touch-icon.png',
   },
 };
 
