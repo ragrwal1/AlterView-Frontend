@@ -44,6 +44,10 @@ interface AssessmentResult {
   transcript_id: number | null;
 }
 
+// API configuration
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1";
+const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
+
 export default function StudentDashboard({
   params,
 }: {
@@ -85,7 +89,13 @@ export default function StudentDashboard({
     const fetchAssessmentResults = async () => {
       try {
         const response = await fetch(
-          `https://alterview-api.vercel.app/api/v1/assessment-results/student/${params.student_id}`
+          `${API_BASE_URL}/assessment-results/student/${params.student_id}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+          }
         );
 
         if (!response.ok) {

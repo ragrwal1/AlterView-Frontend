@@ -8,7 +8,9 @@ function randomInt(min: number, max: number): number {
 
 // Supabase configuration
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+const SERVICE_KEY = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_KEY;
+const API_KEY = process.env.NEXT_PUBLIC_API_KEY;  // Add API key for external API calls
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1";
 
 if (!SUPABASE_URL || !SERVICE_KEY) {
   throw new Error('Missing Supabase configuration. Please check your environment variables.');
@@ -228,8 +230,12 @@ export async function getStudentName(id: number) {
 //process mindmap method. takes in an assessment result id calls an api, pushes the mindmap to the supabase db, and then returns a good or bad response
 export async function processMindmap(assessmentResultId: number) {
   try {
-    const response = await fetch(`https://alterview-api.vercel.app/api/v1/assessment-results/${assessmentResultId}/process`, {
+    const response = await fetch(`${API_BASE_URL}/assessment-results/${assessmentResultId}/process`, {
       method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${API_KEY}`,
+        'Content-Type': 'application/json',
+      },
     });
     
     if (!response.ok) {
